@@ -6,7 +6,9 @@
 
 > **Funciona con cualquier terminal:** Termius, PuTTY, SecureCRT, MobaXterm, Windows Terminal, OpenSSH, Tabby, iTerm. Sin plugins de terminal.
 
-> ⚠️ **Pre-alpha.** La aplicación todavía no es utilizable. Tres bibliotecas independientes ya se pueden probar desde el código fuente: [`netcmd-safety`](packages/netcmd-safety), [`netprompt`](packages/netprompt) y [`netaddr-search`](packages/netaddr-search). Sigue el repositorio o toma un [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
+> ⚠️ **Proyecto experimental.** routerscope está en una fase temprana y experimental, en desarrollo activo. Los comandos, las APIs y el formato de la base de datos pueden cambiar sin aviso, y todavía no se validó a escala con equipos reales. No lo uses en producción.
+>
+> La aplicación todavía no es utilizable. Tres bibliotecas independientes ya se pueden probar desde el código fuente: [`netcmd-safety`](packages/netcmd-safety), [`netprompt`](packages/netprompt) y [`netaddr-search`](packages/netaddr-search). Sigue el repositorio o toma un [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Por qué
 
@@ -16,7 +18,7 @@ Los ingenieros de red pierden minutos cada día recorriendo el historial de la t
 
 ## Qué hará
 
-- **Búsqueda instantánea** en configuraciones, salidas de comandos e historial: texto libre, **contención de IP/prefijo** (`200.0.0.0/22` encuentra todo lo que está dentro o lo contiene), MAC en cualquier formato, ASN, communities, VLAN, nombres de interfaz normalizados entre fabricantes, nombres de policy/prefix-list/ACL/VRF.
+- **Búsqueda instantánea** en configuraciones, salidas de comandos e historial: texto libre, **contención de IP/prefijo** (`192.0.2.0/24` encuentra todo lo que está dentro o lo contiene), MAC en cualquier formato, ASN, communities, VLAN, nombres de interfaz normalizados entre fabricantes, nombres de policy/prefix-list/ACL/VRF.
 - **Línea de tiempo y diff semántico**: compara salidas por clave natural (peer, interfaz, prefijo), ignorando contadores, uptime y timestamps. Diff jerárquico de configuración.
 - **"¿Dónde está?"**: en qué equipos/interfaces/VRFs aparece una IP, MAC, VLAN o prefijo.
 - **Navegador estilo Winbox (read-first)** para todos los fabricantes, con navegación por referencias, **where-used**, referencias rotas y objetos sin uso.

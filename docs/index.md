@@ -2,8 +2,8 @@
 
 **Everything your routers have ever shown you, and everything configured on them, searchable in milliseconds. Browse it like Winbox, on any vendor. Test a change before you apply it.**
 
-!!! warning "Pre-alpha"
-    Nothing is usable yet. This site describes the design and the roadmap.
+!!! warning "Experimental project"
+    routerscope is in an early, experimental phase and under active development. Commands, APIs and the database format may change without notice, and nothing has been validated against real devices at scale yet. Do not rely on it for production work. The app is not usable yet; this site describes the design and the roadmap.
 
 - Works with **any terminal**: Termius, PuTTY, SecureCRT, MobaXterm, Windows Terminal, OpenSSH, Tabby, iTerm.
 - **Read-only by default**, local-first, no telemetry.

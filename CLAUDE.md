@@ -42,6 +42,7 @@ Feature branch → small Conventional Commits → PR to `main` (even solo) → C
 - Public visibility is switched by the maintainer by hand (a local safety hook blocks it for Claude).
 - Commits use the repo-local identity `dalcorsogabriel` + GitHub noreply e-mail (no real name). Check `git log --format='%an %cn'` before every push.
 - `netcmd-safety` is allowlist-based and fails closed: control characters (Tab included), non-ASCII lookalikes and backslashes are never safe; RouterOS reads need known menus, a read verb and exact-name parameters. Cases are from documented CLI behaviour, not real devices yet.
+- The project is labelled **experimental** everywhere (READMEs, docs home, package READMEs, PyPI classifier `2 - Pre-Alpha`, repo description) until the maintainer has tested it hands-on as a user and says otherwise.
 - Long-running reads (`print follow`, `monitor` without `once`) are classified read; the collector must enforce its own timeout.
 
 ## Current state
@@ -49,5 +50,6 @@ Phase 0 done. Phase 1 Step 1 done: `netcmd-safety`, `netprompt` and `netaddr-sea
 
 ## Next steps
 1. Phase 1 Step 2 (`docs/plans/v0.1.md`): model, storage (SQLite FTS5), fixture sanitizer, vendor plugin protocol. Then importers → parsers → search/diff/locate → CLI → minimal UI → benchmarks → docs → v0.1.0.
-2. Ask the maintainer for real device outputs via `contexto/`; sanitize before committing.
-3. ADRs pending: web UI framework (Svelte vs HTMX), release tooling.
+2. When v0.1 is usable end to end, tell the maintainer it is ready for a hands-on test as a real user, with a short step-by-step test script (install, import, search, diff). Fix what they find before tagging v0.1.0.
+3. Ask the maintainer for real device outputs via `contexto/`; sanitize before committing.
+4. ADRs pending: web UI framework (Svelte vs HTMX), release tooling.
