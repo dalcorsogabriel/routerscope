@@ -458,3 +458,14 @@ def test_plain_words_are_literal_terms(store: Store) -> None:
     assert [h.line_no for h in store.search_text("route-policy pass-all")] == [1]
     assert [h.line_no for h in store.search_text("Ethernet0/0/1")] == [2]
     assert store.search_text("route-policy GigabitEthernet") == []
+
+
+@pytest.mark.parametrize("bad", ['"a', "(abc", "abc)", "(abc AND def", '"abc" )', "a AND ((b)"])
+def test_unbalanced_queries_rejected_on_every_sqlite(store: Store, bad: str) -> None:
+    with pytest.raises(QuerySyntaxError):
+        store.search_text(bad)
+
+
+def test_parentheses_inside_quotes_are_fine(store: Store, src: Source) -> None:
+    add(store, "match (x) here\n", src)
+    assert [h.line_no for h in store.search_text('"(x)"')] == [1]

@@ -215,6 +215,21 @@ def quote_fts_literal(text: str) -> str:
 _FTS_OPERATORS = re.compile(r'["()*^:]|\b(?:AND|OR|NOT|NEAR)\b')
 
 
+def _balanced(text: str) -> bool:
+    """Quotes pair up and parentheses outside quotes nest properly."""
+    depth, quoted = 0, False
+    for char in text:
+        if char == '"':
+            quoted = not quoted
+        elif not quoted and char == "(":
+            depth += 1
+        elif not quoted and char == ")":
+            depth -= 1
+            if depth < 0:
+                return False
+    return not quoted and depth == 0
+
+
 def auto_fts_query(text: str) -> str:
     """Plain words (no FTS operators) become literal terms, ANDed.
 
@@ -733,9 +748,9 @@ class Store:
                 " WHERE l.text LIKE :q ESCAPE '\\' ORDER BY l.id DESC LIMIT :limit"
             )
         else:
-            if not literal and text.count('"') % 2:
-                # Older SQLite builds accept an unterminated phrase; reject it everywhere.
-                raise QuerySyntaxError("unbalanced quotes in search query")
+            if not literal and not _balanced(text):
+                # Older SQLite builds accept an unterminated phrase or group; reject it everywhere.
+                raise QuerySyntaxError("unbalanced quotes or parentheses in search query")
             params["q"] = quote_fts_literal(text) if literal else auto_fts_query(text)
             sql = (
                 f"SELECT l.content_id, l.line_no, NULL, {_HIT_COLUMNS} FROM lines_fts f"
