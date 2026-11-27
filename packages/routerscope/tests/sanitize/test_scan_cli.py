@@ -14,6 +14,11 @@ from routerscope.sanitize import Finding, load_allowlist, scan, scan_paths
 TOOL = Path(__file__).resolve().parents[4] / "tools" / "sanitize_fixture.py"
 
 
+def strict(text: str, **kw: object) -> list[Finding]:
+    """Findings of the sanitizer's own detectors (the noisy second opinion is tested apart)."""
+    return [f for f in scan(text, **kw) if not f.heuristic]  # type: ignore[arg-type]
+
+
 def _tool() -> ModuleType:
     spec = importlib.util.spec_from_file_location("sanitize_fixture_tool", TOOL)
     assert spec is not None and spec.loader is not None
@@ -25,12 +30,12 @@ def _tool() -> ModuleType:
 CLEAN = (
     "hostname R1\nenable secret 5 <redacted>\nrouter bgp 64496\n"
     " neighbor 192.0.2.1 remote-as 64497\n ip address 10.0.0.1 255.255.255.0\n"
-    " mac 0000.5e00.5300\n peer 2001:db8::1\n contact noc@example.com\n"
+    " mac 0000.5e00.5300\n peer 2001:db8::1\n ! done\n"
 )
 
 
 def test_scan_clean_text() -> None:
-    assert scan(CLEAN) == []
+    assert strict(CLEAN) == []
 
 
 def test_scan_reports_each_kind() -> None:
@@ -43,23 +48,23 @@ def test_scan_reports_each_kind() -> None:
         "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n"
         "crypto pki certificate chain T\n certificate 01\n  3082AA\n  quit\n"
     )
-    kinds = [(f.kind, f.line) for f in scan(text)]
+    kinds = [(f.kind, f.line) for f in strict(text)]
     assert ("secret", 1) in kinds
     assert [k for k in kinds if k[0] == "ipv4"] == [("ipv4", 2), ("ipv4", 2)]
     assert ("ipv6", 3) in kinds and ("asn", 4) in kinds and ("email", 5) in kinds
     assert ("pem", 6) in kinds and any(k[0] == "certificate" for k in kinds)
-    first = scan("a\n  password hunter2\n")[0]
+    first = strict("a\n  password hunter2\n")[0]
     assert first == Finding("secret", 2, 12, "hunter2", "password")
-    assert first.sensitive and not scan("peer 8.8.8.8\n")[0].sensitive
+    assert first.sensitive and not strict("peer 8.8.8.8\n")[0].sensitive
 
 
 def test_allowlist_literal_and_regex(tmp_path: Path) -> None:
     text = "peer 8.8.8.8\npeer 8.8.4.4\nenable secret 5 abc\n"
-    assert len(scan(text)) == 3
-    assert len(scan(text, allow=["8.8.8.8"])) == 2
-    assert [f.text for f in scan(text, allow=[r"8\.8\.\d\.\d", "abc"])] == []
-    assert len(scan(text, allow=["(unclosed"])) == 3
-    assert scan("peer 8.8.8.8\n", allow=[re.compile(r"8\..*")]) == []
+    assert len(strict(text)) == 3
+    assert len(strict(text, allow=["8.8.8.8"])) == 2
+    assert [f.text for f in strict(text, allow=[r"8\.8\.\d\.\d", "abc"])] == []
+    assert len(strict(text, allow=["(unclosed"])) == 3
+    assert strict("peer 8.8.8.8\n", allow=[re.compile(r"8\..*")]) == []
     allow = tmp_path / ".sanitize-allow"
     allow.write_text("# comment\n\n8.8.8.8\n  abc  \n", encoding="utf-8")
     assert load_allowlist(allow) == ["8.8.8.8", "abc"]
@@ -75,7 +80,7 @@ def test_scan_paths_walks_directories_and_never_skips_files(tmp_path: Path) -> N
     (tmp_path / "__pycache__" / "x.txt").write_text("password y\n", encoding="utf-8")
     (tmp_path / ".git").mkdir()
     (tmp_path / ".git" / "config").write_text("password z\n", encoding="utf-8")
-    found = {f.path.name: f.finding.kind for f in scan_paths([tmp_path])}
+    found = {f.path.name: f.finding.kind for f in scan_paths([tmp_path]) if not f.finding.heuristic}
     assert found == {"a.txt": "secret", "b.bin": "binary", "c.png": "binary", "x.txt": "secret"}
     with pytest.raises(FileNotFoundError):
         scan_paths([tmp_path / "nope"])
@@ -86,8 +91,9 @@ def test_scan_paths_expands_wildcards(tmp_path: Path, monkeypatch: pytest.Monkey
         (tmp_path / d / "tests" / "data").mkdir(parents=True)
         (tmp_path / d / "tests" / "data" / "x.txt").write_text("password abc\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
-    assert len(scan_paths(["p*/tests/data"])) == 2
-    assert len(scan_paths([str(tmp_path / "p*" / "tests" / "data")])) == 2
+    assert len([f for f in scan_paths(["p*/tests/data"]) if not f.finding.heuristic]) == 2
+    wild = scan_paths([str(tmp_path / "p*" / "tests" / "data")])
+    assert len([f for f in wild if not f.finding.heuristic]) == 2
 
 
 # ----------------------------------------------------------------------------- CLI

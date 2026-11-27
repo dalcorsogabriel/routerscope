@@ -67,7 +67,9 @@ CFG = settings(max_examples=300, deadline=None, suppress_health_check=[HealthChe
 def test_redact_never_raises_is_idempotent_and_clean(text: str) -> None:
     out = redact_secrets(text)
     assert redact_secrets(out) == out
-    assert [f for f in scan(out) if f.kind in {"secret", "pem", "certificate"}] == []
+    assert [
+        f for f in scan(out) if f.kind in {"secret", "pem", "certificate"} and not f.heuristic
+    ] == []
 
 
 @CFG
@@ -76,7 +78,7 @@ def test_sanitize_never_raises_and_is_idempotent(text: str) -> None:
     out = Sanitizer(descriptions=True, remap_private=True).sanitize(text)
     again = Sanitizer(descriptions=True, remap_private=True).sanitize(out)
     assert again == out
-    assert scan(out) == []
+    assert [f for f in scan(out) if not f.heuristic] == []
 
 
 @CFG

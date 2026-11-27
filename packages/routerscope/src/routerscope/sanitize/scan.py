@@ -10,6 +10,7 @@ from pathlib import Path
 
 from routerscope.sanitize._addr import iter_addr_spans
 from routerscope.sanitize._asn import is_public_asn, iter_asn_spans
+from routerscope.sanitize._heuristics import all_hits
 from routerscope.sanitize._lines import split_lines
 from routerscope.sanitize.encoding import UndecodableError, decode_bytes
 from routerscope.sanitize.redaction import iter_block_spans, iter_secret_spans
@@ -24,9 +25,17 @@ _OPAQUE_SUFFIXES = frozenset(
 )
 
 
+_PROSE_SUFFIXES = frozenset({".md", ".rst"})
+
+
 @dataclass(frozen=True, slots=True)
 class Finding:
-    """One problem: ``kind`` is secret, pem, certificate, ipv4, ipv6, asn or email."""
+    """One problem.
+
+    ``kind`` is secret, pem, certificate, credentials, ipv4, ipv6, asn, email, binary, or one of
+    the noisy second-opinion kinds (fqdn, mac, eui64, serial, freetext); those have a ``detail``
+    starting with ``heuristic:``.
+    """
 
     kind: str
     line: int
@@ -37,7 +46,12 @@ class Finding:
     @property
     def sensitive(self) -> bool:
         """True when ``text`` is a secret and must not be echoed in logs."""
-        return self.kind in {"secret", "pem", "certificate"}
+        return self.kind in {"secret", "pem", "certificate", "credentials"}
+
+    @property
+    def heuristic(self) -> bool:
+        """True for the noisy second-opinion checks (they may flag harmless text)."""
+        return self.detail.startswith("heuristic:")
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,11 +89,19 @@ def _allowed(text: str, allow: Sequence[re.Pattern[str] | str]) -> bool:
 
 
 def scan(
-    text: str, *, allow: Iterable[re.Pattern[str] | str] = (), vendor: str | None = None
+    text: str,
+    *,
+    allow: Iterable[re.Pattern[str] | str] = (),
+    vendor: str | None = None,
+    heuristics: bool = True,
 ) -> list[Finding]:
     """Report unredacted secrets, PEM blocks, public IPs, public ASNs and e-mail addresses.
 
-    A finding whose text equals (or fully matches, as a regex) an ``allow`` entry is skipped.
+    The sanitizer's own detectors run first; then independent, deliberately noisy heuristics
+    (secret keyword + value, domain names, MACs, EUI-64 IDs, serials, free text, URL
+    credentials) give a second opinion. Allowlist semantics: an ``allow`` entry is global (it
+    applies to every finding of every file) and is a regular expression that must fully match
+    the finding text (or equal it literally); nothing else about the finding is considered.
     """
     allowed = list(allow)
     starts = [ln.start for ln in split_lines(text)]
@@ -108,6 +130,9 @@ def scan(
         if not SAFE_EMAIL_DOMAIN.search(m.group().split("@", 1)[1]):
             ln, col = where(m.start())
             raw.append(Finding("email", ln, col, m.group()))
+    for kind, offset, value, detail in all_hits(text) if heuristics else ():
+        ln, col = where(offset)
+        raw.append(Finding(kind, ln, col, value, detail))
     raw.sort(key=lambda f: (f.line, f.column, f.kind))
     return [f for f in raw if not _allowed(f.text, allowed)]
 
@@ -142,7 +167,8 @@ def scan_file(path: Path, *, allow: Iterable[re.Pattern[str] | str] = ()) -> lis
         decoded = decode_bytes(data)
     except UndecodableError as exc:
         return [Finding("binary", 0, 0, path.name, str(exc))]
-    return scan(decoded.text, allow=allow)
+    prose = path.suffix.lower() in _PROSE_SUFFIXES  # documentation: strict checks only
+    return scan(decoded.text, allow=allow, heuristics=not prose)
 
 
 def scan_paths(

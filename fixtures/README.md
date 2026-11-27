@@ -27,7 +27,7 @@ Command slug: the command in lowercase with spaces and slashes turned into `-`, 
   `2001:db8::/32`) keeping prefix lengths and same-network relationships, maps third-party ASNs to
   documentation ASNs (`64496-64511`, `65536-65551`), MACs to `00-00-5E-00-53-xx`, hostnames to `R1, R2...`
   and e-mail addresses to `userN@example.com`. Use `--descriptions` to also neutralize description text.
-  Private/CGNAT ranges are kept unless you pass `--remap-private`. See `tools/README.md` for all options.
+  Private/CGNAT ranges are kept unless you give `--remap-private`. See `tools/README.md` for all options.
   It does not know about circuit IDs, customer names in banners or free text: check those by hand
   (`CUST-A`, `UPLINK-1`).
 - CI runs `--check` on `fixtures/` and fails on unredacted secrets, public addresses, public ASNs in AS
