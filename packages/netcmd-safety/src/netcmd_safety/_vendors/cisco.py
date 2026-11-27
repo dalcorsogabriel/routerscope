@@ -46,10 +46,13 @@ _WRITE = Node(
 )
 
 
+_TECH_WRITERS = ("file", "compressed", "background")
+
+
 def _show_args(rest: Sequence[str]) -> Verdict | None:
-    """`show tech-support ... file <path>` (and `compressed`) writes to the device disk."""
+    """`show tech-support ... file|compressed|background|<dev:path>` writes to disk."""
     tech = bool(rest) and len(rest[0]) >= 3 and "tech-support".startswith(rest[0])
-    if tech and any(":" in w or w == "compressed" or "file".startswith(w) for w in rest[1:]):
+    if tech and any(":" in w or any(k.startswith(w) for k in _TECH_WRITERS) for w in rest[1:]):
         return Verdict.DESTRUCTIVE
     return None
 

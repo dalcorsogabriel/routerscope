@@ -81,3 +81,15 @@ read                /ip address print where address in 192.0.2.0/24 and !disable
 read                /log print where topics~"bgp" and message~"down"
 read                /interface monitor-traffic ether1 once
 unknown             /ip address print where (address=192.0.2.1/24
+destructive         /ip address print where name = a file = b
+unknown             /ip address print where name=a file =b
+unknown             /ip address print where name=a file b
+unknown             /ip address print where name=a fi
+destructive         /ip address print where name=x /system/reset-configuration
+destructive         /ip address print where name=x remove numbers=0
+destructive         /ip address print where name=x set disabled=yes
+unknown             /ip address print where =x
+unknown             /ip address print where name=a -file=x
+unknown             /ip address print where name=a :file=x
+read                /ip address print where disabled and !dynamic
+read                /interface print where running and type=ether

@@ -50,3 +50,8 @@ destructive         show run > disk0:x
 destructive         show tech-support routing bgp file harddisk:/x
 destructive         show tech-support ethernet interfaces file harddisk:/a compressed
 read                show file information disk0:/x
+destructive         show tech-support cef comp
+destructive         show tech-support cef b
+destructive         show tech-support background
+destructive         admin show tech-support comp
+read                show tech-support cef

@@ -70,7 +70,9 @@ _MONITOR_FLAGS = frozenset({"once"})
 _WRITING_KEYS = ("file", "append", "dst-path")
 
 # `where` filter expressions: properties, comparisons, values and boolean operators.
-_FILTER_TOKEN = re.compile(r"^!?\(*[\w.:/,-]*(?:(?:!=|<=|>=|=|~|<|>|in)[\w.:/,\"*~^$-]*)?\)*$")
+_FILTER_TOKEN = re.compile(
+    r"^!?\(*[\w.-][\w.:/,-]*(?:(?:!=|<=|>=|=|~|<|>|in)[\w.:/,\"*~^$-]*)?\)*$"
+)
 _FILTER_WORDS = frozenset({"and", "or", "not", "in", "!"})
 
 _WRITE_VERBS: dict[str, Verdict] = {
@@ -139,8 +141,19 @@ def _filter_ok(tokens: list[Token]) -> bool:
     depth = 0
     for tok in tokens:
         text = tok.text
-        if _writing_key(text):
+        if _writing_key(text) or text[:1] in ("=", "/", "-", ":"):
             return False
+        bare = text.strip("!()").lower()
+        if (
+            "=" not in text
+            and bare
+            and bare not in _FILTER_WORDS
+            and (
+                any(k.startswith(bare) for k in _WRITING_KEYS)
+                or any(v.startswith(bare) for v in _WRITE_VERBS)
+            )
+        ):
+            return False  # `file = x` split by spaces, or a verb smuggled into the filter
         if text.lower() not in _FILTER_WORDS and not _FILTER_TOKEN.match(text):
             return False
         depth += text.count("(") - text.count(")")
