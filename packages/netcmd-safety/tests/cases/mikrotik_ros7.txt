@@ -51,3 +51,16 @@ unknown             :put [/ip address get 0]
 unknown             /ip address print where interface=[/interface find name=ether1]
 unknown             /ip address
 unknown             /system/package/update/check-for-updates
+
+# --- regressions from code review: an unlisted verb must not hide behind a read verb
+unknown             /system backup save pr
+unknown             /system/backup/save print
+unknown             /system backup load ex
+unknown             /tool/sniffer/start get
+unknown             /tool fetch url=http://x dst-path=a get
+unknown             /system/"reboot" print
+destructive         /ip address print \"; /system reboot; \"
+unknown             /ip address print \
+read                /ip address print count-only
+read                /routing/bgp/connection/print detail where name="UPLINK-1"
+unknown             /ip address print append

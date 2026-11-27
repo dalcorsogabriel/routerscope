@@ -56,3 +56,9 @@ unknown             tracert 192.0.2.1
 unknown             d
 unknown             bgp 64496
 unknown             display bgp peer | redirect x
+
+# --- regressions from code review
+destructive         display cur >flash:x
+destructive         display cur>flash:x
+destructive         display current-configuration >> flash:x
+unknown             quit now

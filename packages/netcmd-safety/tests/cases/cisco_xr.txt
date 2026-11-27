@@ -42,3 +42,6 @@ config      @config abort
 unknown             run ls
 unknown             show run | utility egrep bgp
 unknown             ping vrf CUST-A 192.0.2.1
+
+# --- regressions from code review
+destructive         show run > disk0:x

@@ -63,3 +63,10 @@ unknown             ping 192.0.2.1
 unknown             traceroute 192.0.2.1
 unknown             oam lsp-ping prefix 192.0.2.1/32
 unknown             show router bgp summary | file cf3:/x
+
+# --- regressions from code review
+destructive         show router>cf3:/x
+destructive         show router >cf3:/x
+config              environment sav
+unknown             show router "bgp summary
+unknown             logout now

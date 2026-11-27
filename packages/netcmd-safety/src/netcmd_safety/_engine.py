@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 
 from ._model import Mode, Verdict, worst
-from ._tokens import split_unquoted, tokenize
+from ._tokens import balanced_quotes, has_unquoted, split_unquoted, tokenize
 
 Handler = Callable[[Sequence[str]], Verdict | None]
 
@@ -31,8 +31,10 @@ class Node:
     default: Verdict | None = None
     min_abbrev: int = 1
     enters: Mode | None = None
-    recurse: bool = False
-    """Classify the remaining words as an exec-mode command (``do``, ``run``, ``admin``)."""
+    recurse: Mode | None = None
+    """Classify the remaining words as a command in this mode (``do``, ``run``, ``top``)."""
+    skip_number: bool = False
+    """With ``recurse``: skip one leading numeric argument (Junos ``up 2 <command>``)."""
     handler: Handler | None = None
     """Inspect the remaining words; a non-None result overrides the verdict."""
 
@@ -41,8 +43,27 @@ def leaf(verdict: Verdict, *, min_abbrev: int = 1, enters: Mode | None = None) -
     return Node(verdict=verdict, min_abbrev=min_abbrev, enters=enters)
 
 
+def no_args(rest: Sequence[str]) -> Verdict | None:
+    """Handler for session commands that take no arguments: extra words are unknown."""
+    return Verdict.UNKNOWN if rest else None
+
+
+def numeric_arg(rest: Sequence[str]) -> Verdict | None:
+    """Handler allowing at most one numeric argument (``enable 15``, ``back 2``)."""
+    if not rest or (len(rest) == 1 and rest[0].isdigit()):
+        return None
+    return Verdict.UNKNOWN
+
+
+def session(*, enters: Mode | None = None, numeric: bool = False) -> Node:
+    """A session-only command with no arguments (or one number)."""
+    return Node(verdict=Verdict.SESSION, enters=enters, handler=numeric_arg if numeric else no_args)
+
+
 READ = leaf(Verdict.READ)
-SESSION = leaf(Verdict.SESSION)
+SESSION = session()
+SESSION_ARGS = leaf(Verdict.SESSION)
+"""A session-only command whose arguments are free (``terminal length 0``)."""
 CONFIG = leaf(Verdict.CONFIG)
 DESTRUCTIVE = leaf(Verdict.DESTRUCTIVE)
 
@@ -56,8 +77,8 @@ class VendorSpec:
     """Words that make a config-mode statement destructive wherever they appear."""
     destructive_pairs: frozenset[tuple[str, str]] = frozenset()
     """Consecutive word pairs that make a config-mode statement destructive."""
-    redirect: bool = True
-    """Whether a standalone ``>`` / ``>>`` writes the output to a file."""
+    quotes: bool = True
+    """Whether the CLI honours double quotes (otherwise ``"`` is an ordinary character)."""
     strip_root_slash: bool = False
     """Whether a leading ``/`` means "run from the root context" (SR OS)."""
 
@@ -94,13 +115,13 @@ def _walk(
     node = first[1]
     rest = list(words[1:])
     while True:
-        if node.recurse:
+        if node.recurse is not None:
+            if node.skip_number and rest and rest[0].isdigit():
+                rest = rest[1:]
             if not rest:
                 return node.verdict, " ".join(path), node.enters
-            inner = _walk(rest, spec.exec_table, spec)
-            if inner is None:
-                return Verdict.UNKNOWN, f"{' '.join(path)} <unknown>", None
-            return inner[0], f"{' '.join(path)} {inner[1]}", inner[2]
+            inner = _classify_main(rest, node.recurse, spec)
+            return inner.verdict, f"{' '.join(path)} {inner.reason}", inner.next_mode
         if node.handler is not None:
             override = node.handler(rest)
             if override is not None:
@@ -121,11 +142,11 @@ def _classify_main(words: list[str], mode: Mode | None, spec: VendorSpec) -> Res
         words = [words[0][1:], *words[1:]] if words[0] != "/" else words[1:]
         if not words or not words[0]:
             return Result(Verdict.SESSION, "root context", mode)
-        mode_for_table: Mode | None = Mode.EXEC
+        table_mode: Mode | None = Mode.EXEC
     else:
-        mode_for_table = mode
+        table_mode = mode
 
-    if mode_for_table is Mode.CONFIG:
+    if table_mode == Mode.CONFIG:
         walked = _walk(words, spec.config_table, spec)
         if walked is None:
             verdict, reason, enters = Verdict.CONFIG, "configuration statement", None
@@ -144,8 +165,7 @@ def _classify_main(words: list[str], mode: Mode | None, spec: VendorSpec) -> Res
 
     if mode is None:
         # The mode is unknown: the line may be a configuration statement. Only escalate
-        # when it is clearly destructive; otherwise fail closed as UNKNOWN.
-        # Exact keyword only: an abbreviation is not clear evidence.
+        # on clear evidence (an exact keyword, not an abbreviation); otherwise UNKNOWN.
         cfg = _walk(words, spec.config_table, spec) if words[0] in spec.config_table else None
         if cfg is not None and cfg[0] is Verdict.DESTRUCTIVE:
             return Result(Verdict.DESTRUCTIVE, cfg[1], mode)
@@ -160,33 +180,43 @@ def _has_destructive_words(words: Sequence[str], spec: VendorSpec) -> bool:
     return any((a, b) in spec.destructive_pairs for a, b in pairwise(words))
 
 
+def _words(text: str, spec: VendorSpec) -> list[str]:
+    return [t.text if t.quoted else t.text.lower() for t in tokenize(text, quotes=spec.quotes)]
+
+
 def classify_tree(command: str, mode: Mode | None, spec: VendorSpec) -> Result:
     """Classify one command line with a vendor's keyword trees."""
-    segments = split_unquoted(command, "|")
-    main_tokens = tokenize(segments[0])
-    if not main_tokens:
+    q = spec.quotes
+    segments = split_unquoted(command, "|", quotes=q)
+    main_words = _words(segments[0], spec)
+    if not main_words:
+        if len(segments) > 1:
+            return Result(Verdict.UNKNOWN, "pipe without a command", mode)
         return Result(Verdict.SESSION, "empty line", mode)
 
-    verdicts: list[Verdict] = []
-    reasons: list[str] = []
-
-    if spec.redirect and any(
-        not t.quoted and t.text in (">", ">>") for s in segments for t in tokenize(s)
+    # Output redirection writes a file: any unquoted `>` in the command itself, or a
+    # pipe argument that starts with `>` (pipe arguments are often regexes like `\*>`).
+    if has_unquoted(segments[0], ">", quotes=q) or any(
+        w.startswith(">") for seg in segments[1:] for w in _words(seg, spec)
     ):
         return Result(Verdict.DESTRUCTIVE, "output redirected to a file", mode)
 
-    words = [t.text if t.quoted else t.text.lower() for t in main_tokens]
-    main = _classify_main(words, mode, spec)
+    verdicts: list[Verdict] = []
+    reasons: list[str] = []
+    main = _classify_main(main_words, mode, spec)
     verdicts.append(main.verdict)
     reasons.append(main.reason)
 
+    if q and not balanced_quotes(command):
+        verdicts.append(Verdict.UNKNOWN)
+        reasons.append("unbalanced quotes")
+
     for seg in segments[1:]:
-        ptoks = tokenize(seg)
-        if not ptoks:
+        pwords = _words(seg, spec)
+        if not pwords:
             verdicts.append(Verdict.UNKNOWN)
             reasons.append("empty pipe")
             continue
-        pwords = [t.text if t.quoted else t.text.lower() for t in ptoks]
         walked = _walk(pwords, spec.pipes, spec)
         if walked is None:
             verdicts.append(Verdict.UNKNOWN)

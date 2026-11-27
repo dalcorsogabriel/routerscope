@@ -1,4 +1,9 @@
-"""Quote-aware tokenizer shared by all vendors."""
+"""Tokenizer shared by all vendors.
+
+Quote handling is per vendor: Junos, SR OS and RouterOS honour double quotes, while
+the Cisco-like CLIs and VRP do not, so there a ``"`` is an ordinary character and can
+never hide a pipe or a redirect.
+"""
 
 from __future__ import annotations
 
@@ -11,13 +16,13 @@ class Token:
     quoted: bool = False
 
 
-def split_unquoted(text: str, sep: str) -> list[str]:
+def split_unquoted(text: str, sep: str, *, quotes: bool = True) -> list[str]:
     """Split ``text`` on ``sep`` characters that are outside double quotes."""
     parts: list[str] = []
     buf: list[str] = []
     in_quote = False
     for ch in text:
-        if ch == '"':
+        if quotes and ch == '"':
             in_quote = not in_quote
             buf.append(ch)
         elif ch == sep and not in_quote:
@@ -29,8 +34,8 @@ def split_unquoted(text: str, sep: str) -> list[str]:
     return parts
 
 
-def tokenize(text: str) -> list[Token]:
-    """Split on whitespace, keeping double-quoted strings as single quoted tokens."""
+def tokenize(text: str, *, quotes: bool = True) -> list[Token]:
+    """Split on whitespace, keeping double-quoted strings together when ``quotes``."""
     tokens: list[Token] = []
     buf: list[str] = []
     in_quote = False
@@ -44,7 +49,7 @@ def tokenize(text: str) -> list[Token]:
         quoted = False
 
     for ch in text:
-        if ch == '"':
+        if quotes and ch == '"':
             in_quote = not in_quote
             quoted = True
             buf.append(ch)
@@ -56,12 +61,16 @@ def tokenize(text: str) -> list[Token]:
     return tokens
 
 
-def has_unquoted(text: str, chars: str) -> bool:
+def has_unquoted(text: str, chars: str, *, quotes: bool = True) -> bool:
     """True if any of ``chars`` appears outside double quotes."""
     in_quote = False
     for ch in text:
-        if ch == '"':
+        if quotes and ch == '"':
             in_quote = not in_quote
         elif not in_quote and ch in chars:
             return True
     return False
+
+
+def balanced_quotes(text: str) -> bool:
+    return text.count('"') % 2 == 0

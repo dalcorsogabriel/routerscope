@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from .._engine import CONFIG, DESTRUCTIVE, READ, SESSION, Node, VendorSpec, leaf
+from .._engine import CONFIG, DESTRUCTIVE, READ, SESSION, Node, VendorSpec, leaf, session
 from .._model import Mode, Verdict
 
 
 def _environment(rest: Sequence[str]) -> Verdict | None:
     """``environment`` settings last for the session unless they are saved."""
-    return Verdict.CONFIG if "save" in rest else None
+    if any(len(w) >= 2 and "save".startswith(w) for w in rest):
+        return Verdict.CONFIG
+    return None
 
 
 _EXEC: dict[str, Node] = {
@@ -52,7 +54,7 @@ _EXEC: dict[str, Node] = {
     "exec": DESTRUCTIVE,
     "exit": SESSION,
     "logout": SESSION,
-    "back": SESSION,
+    "back": session(numeric=True),
     "quit-config": SESSION,
 }
 
@@ -63,12 +65,12 @@ _CONFIG: dict[str, Node] = {
     "show": READ,
     "exit": Node(
         verdict=Verdict.SESSION,
-        children={"all": leaf(Verdict.SESSION, enters=Mode.EXEC)},
-        default=Verdict.SESSION,
+        children={"all": session(enters=Mode.EXEC)},
+        default=Verdict.UNKNOWN,
     ),
-    "back": SESSION,
+    "back": session(numeric=True),
     "top": SESSION,
-    "quit-config": leaf(Verdict.SESSION, enters=Mode.EXEC),
+    "quit-config": session(enters=Mode.EXEC),
     "commit": CONFIG,
     "discard": CONFIG,
     "delete": DESTRUCTIVE,

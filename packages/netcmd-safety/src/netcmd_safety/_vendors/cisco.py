@@ -2,18 +2,28 @@
 
 from __future__ import annotations
 
-from .._engine import CONFIG, DESTRUCTIVE, READ, SESSION, Node, VendorSpec, leaf
+from .._engine import (
+    CONFIG,
+    DESTRUCTIVE,
+    READ,
+    SESSION,
+    SESSION_ARGS,
+    Node,
+    VendorSpec,
+    leaf,
+    session,
+)
 from .._model import Mode, Verdict
 
 _TERMINAL = Node(
     verdict=Verdict.UNKNOWN,
     min_abbrev=3,
     children={
-        "length": SESSION,
-        "width": SESSION,
+        "length": SESSION_ARGS,
+        "width": SESSION_ARGS,
         "monitor": SESSION,
-        "no": SESSION,
-        "exec": SESSION,
+        "no": SESSION_ARGS,
+        "exec": SESSION_ARGS,
     },
     default=Verdict.UNKNOWN,
 )
@@ -53,12 +63,12 @@ _COMMON_EXEC: dict[str, Node] = {
     "end": SESSION,
     "quit": SESSION,
     "logout": SESSION,
-    "enable": SESSION,
-    "disable": SESSION,
+    "enable": session(numeric=True),
+    "disable": session(numeric=True),
 }
 
-_DO = Node(verdict=Verdict.UNKNOWN, recurse=True)
-_END = leaf(Verdict.SESSION, enters=Mode.EXEC)
+_DO = Node(verdict=Verdict.UNKNOWN, recurse=Mode.EXEC)
+_END = session(enters=Mode.EXEC)
 
 _COMMON_CONFIG: dict[str, Node] = {
     "do": _DO,
@@ -85,13 +95,13 @@ IOS = VendorSpec(
     config_table=_COMMON_CONFIG,
     pipes=_CISCO_PIPES,
     destructive_words=frozenset({"shutdown"}),
-    redirect=False,
+    quotes=False,
 )
 
 XR = VendorSpec(
     exec_table={
         **_COMMON_EXEC,
-        "admin": Node(verdict=Verdict.UNKNOWN, recurse=True),
+        "admin": Node(verdict=Verdict.UNKNOWN, recurse=Mode.EXEC),
         "rollback": DESTRUCTIVE,
     },
     config_table={
@@ -112,7 +122,7 @@ XR = VendorSpec(
         "file": DESTRUCTIVE,
     },
     destructive_words=frozenset({"shutdown"}),
-    redirect=False,
+    quotes=False,
 )
 
 OCNOS = VendorSpec(
@@ -137,5 +147,5 @@ OCNOS = VendorSpec(
         "tee": DESTRUCTIVE,
     },
     destructive_words=frozenset({"shutdown"}),
-    redirect=False,
+    quotes=False,
 )

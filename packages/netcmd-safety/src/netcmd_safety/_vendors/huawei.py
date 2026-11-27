@@ -4,7 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from .._engine import CONFIG, DESTRUCTIVE, READ, SESSION, Node, VendorSpec, leaf
+from .._engine import (
+    CONFIG,
+    DESTRUCTIVE,
+    READ,
+    SESSION,
+    SESSION_ARGS,
+    Node,
+    VendorSpec,
+    leaf,
+    session,
+)
 from .._model import Mode, Verdict
 
 
@@ -48,7 +58,7 @@ _EXEC: dict[str, Node] = {
         children={
             "screen-length": _SCREEN,
             "screen-width": _SCREEN,
-            "terminal": SESSION,
+            "terminal": SESSION_ARGS,
             "debugging": CONFIG,
         },
         default=Verdict.DESTRUCTIVE,
@@ -74,7 +84,7 @@ _CONFIG: dict[str, Node] = {
     "display": _DISPLAY,
     "undo": DESTRUCTIVE,
     "quit": SESSION,
-    "return": leaf(Verdict.SESSION, enters=Mode.EXEC),
+    "return": session(enters=Mode.EXEC),
     "commit": CONFIG,
     "rollback": DESTRUCTIVE,
     "clear": DESTRUCTIVE,
@@ -94,4 +104,5 @@ VRP = VendorSpec(
         "refresh": READ,
     },
     destructive_words=frozenset({"shutdown", "ignore"}),
+    quotes=False,
 )

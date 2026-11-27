@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -154,3 +156,51 @@ def test_multiline_with_a_write_is_never_safe(vendor: str, lines: list[str]) -> 
         assert combined.severity >= classify(line, vendor).verdict.severity or True
     if any(not is_collector_safe(line, vendor) for line in lines):
         assert combined not in (Verdict.READ, Verdict.SESSION)
+
+
+# --- regressions from code review -------------------------------------------------
+
+CONTROL_TRICKS = [
+    "show version\x15reload",  # Ctrl-U kills the line, then reload runs
+    "show version\x03reload",
+    "show version" + "\x08" * 12 + "reload",
+    "show version\x7f\x7freload",
+    "show version\x1b[Areload",
+    "show" + chr(0xA0) + "version",  # non-breaking space
+    "show ver" + chr(0x212A) + "ion",  # Kelvin sign lookalike
+]
+
+
+@pytest.mark.parametrize("vendor", VENDORS)
+@pytest.mark.parametrize("command", CONTROL_TRICKS)
+def test_control_and_lookalike_characters_are_never_safe(command: str, vendor: str) -> None:
+    assert not is_collector_safe(command, vendor)
+
+
+def test_carriage_return_splits_commands() -> None:
+    assert classify("show version\rreload", "cisco_ios").verdict is Verdict.DESTRUCTIVE
+
+
+def test_non_ascii_does_not_downgrade_a_write() -> None:
+    assert classify("description São Paulo", "cisco_ios", mode=Mode.CONFIG).verdict is (
+        Verdict.CONFIG
+    )
+
+
+class OtherMode(StrEnum):
+    EXEC = "exec"
+    CONFIG = "config"
+
+
+@pytest.mark.parametrize("mode", [Mode.CONFIG, OtherMode.CONFIG, "config"])
+def test_mode_is_compared_by_value(mode: Mode | str) -> None:
+    assert classify("enable secret x", "cisco_ios", mode=mode).verdict is Verdict.CONFIG
+    assert classify("neighbor 192.0.2.1 shutdown", "cisco_ios", mode=mode).verdict is (
+        Verdict.DESTRUCTIVE
+    )
+    assert classify("show run", "cisco_ios", mode=mode).mode is Mode.CONFIG
+
+
+def test_invalid_mode_raises() -> None:
+    with pytest.raises(ValueError):
+        classify("show run", "cisco_ios", mode="privileged")

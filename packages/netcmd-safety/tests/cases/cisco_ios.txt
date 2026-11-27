@@ -76,3 +76,18 @@ unknown             show run |
 unknown             interface GigabitEthernet0/0/1
 unknown             router bgp 64496
 unknown             foo bar
+
+# --- regressions from code review
+destructive         show run > flash:x
+destructive         show run >> flash:x
+destructive         show run >flash:x
+destructive         show run | i bgp >flash:x
+destructive         show "x | redirect flash:y"
+unknown             | redirect flash:x
+unknown              |reload
+unknown             enable secret x
+unknown             enable password x
+session             enable 15
+unknown             exit now
+config      @config enable secret x
+unknown     @config end now

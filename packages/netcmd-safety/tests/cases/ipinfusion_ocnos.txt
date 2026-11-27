@@ -28,3 +28,6 @@ config      @config abort
 
 unknown             ping 192.0.2.1
 unknown             start-shell
+
+# --- regressions from code review
+destructive         show run > x
