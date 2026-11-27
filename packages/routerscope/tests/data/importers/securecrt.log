@@ -1,0 +1,16 @@
+[2026-01-05 10:22:01] <R1>display version
+[2026-01-05 10:22:01] Huawei Versatile Routing Platform Software
+[2026-01-05 10:22:01] VRP (R) software, Version 8.180 (NE40E V800R011C00SPC607B607)
+[2026-01-05 10:22:01] HUAWEI NE40E-X8A uptime is 120 days, 3 hours, 11 minutes
+[2026-01-05 10:22:05] <R1>display ip interface brief
+[2026-01-05 10:22:05] Interface                         IP Address/Mask      Physical   Protocol
+[2026-01-05 10:22:05] GigabitEthernet0/0/1              192.0.2.1/30         up         up
+[2026-01-05 10:22:05] LoopBack0                         198.51.100.1/32      up         up(s)
+[2026-01-05 10:22:09] <R1>system-view
+[2026-01-05 10:22:11] [~R1]display bgp peer
+[2026-01-05 10:22:11]  BGP local router ID : 198.51.100.1
+[2026-01-05 10:22:11]  Local AS number : 64496
+[2026-01-05 10:22:11]  Peer            V          AS  MsgRcvd  MsgSent  OutQ  Up/Down       State PrefRcv
+[2026-01-05 10:22:11]  192.0.2.2       4       64497      812      799     0 03:12:44 Established       12
+[2026-01-05 10:22:20] [~R1]quit
+[2026-01-05 10:22:21] <R1>

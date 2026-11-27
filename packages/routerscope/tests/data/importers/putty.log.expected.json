@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": null,
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "putty",
+    "first_line": "R1#show version"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show version",
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "putty",
+    "first_line": "Cisco IOS Software, ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.9.4a"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show ip route 203.0.113.0",
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "putty",
+    "first_line": "Routing entry for 203.0.113.0/24"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show running-config | include hostname",
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "putty",
+    "first_line": "hostname R1"
+  }
+]

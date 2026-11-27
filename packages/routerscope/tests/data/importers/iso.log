@@ -1,0 +1,8 @@
+2026-01-05T10:22:01.123Z RP/0/RSP0/CPU0:PE1#show bgp ipv4 unicast summary
+2026-01-05T10:22:01.200Z BGP router identifier 198.51.100.10, local AS number 64496
+2026-01-05T10:22:01.201Z Neighbor        Spk    AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down  St/PfxRcd
+2026-01-05T10:22:01.202Z 192.0.2.2         0 64497    1812    1799      221    0    0 1d02h           12
+2026-01-05T10:22:09.500Z RP/0/RSP0/CPU0:PE1#show version
+2026-01-05T10:22:09.620Z Cisco IOS XR Software, Version 7.9.2
+2026-01-05T10:22:09.621Z PE1 uptime is 4 weeks, 2 days
+2026-01-05T10:22:12.000Z RP/0/RSP0/CPU0:PE1#
