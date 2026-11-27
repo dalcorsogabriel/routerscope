@@ -199,7 +199,7 @@ def test_search_text_errors(store: Store) -> None:
     with pytest.raises(QuerySyntaxError):
         store.search_text('"unbalanced')
     with pytest.raises(QuerySyntaxError):
-        store.search_text("route-policy")
+        store.search_text("route AND (policy")
     with pytest.raises(ValueError):
         store.search_text("abc", limit=0)
 

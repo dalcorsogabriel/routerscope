@@ -231,7 +231,7 @@ def test_busy_at_open_is_mapped(tmp_path: Path, redactor: Redactor) -> None:
 
 def test_only_fts_syntax_errors_become_query_syntax_error(store: Store, src: Source) -> None:
     add(store, "route-policy X\n", src)
-    for bad in ['"unbalanced', "foo:bar", "route-policy", "AND OR", "abc AND"]:
+    for bad in ['"unbalanced', "foo:bar", "AND OR", "abc AND"]:
         with pytest.raises(QuerySyntaxError):
             store.search_text(bad)
     store._conn.execute("DROP TABLE lines_fts")
@@ -449,3 +449,12 @@ def test_latest_only_is_per_command(store: Store, src: Source) -> None:
     )
     texts = sorted(h.text for h in store.find_prefix("192.0.2.1", latest_only=True))
     assert texts == ["a2 192.0.2.1", "b 192.0.2.1"]
+
+
+def test_plain_words_are_literal_terms(store: Store) -> None:
+    src = Source(kind="paste", uri="u", importer="t")
+    add(store, "route-policy PASS-ALL\ninterface GigabitEthernet0/0/1\n", src)
+    assert [h.line_no for h in store.search_text("route-policy")] == [1]
+    assert [h.line_no for h in store.search_text("route-policy pass-all")] == [1]
+    assert [h.line_no for h in store.search_text("Ethernet0/0/1")] == [2]
+    assert store.search_text("route-policy GigabitEthernet") == []

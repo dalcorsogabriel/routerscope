@@ -212,6 +212,21 @@ def quote_fts_literal(text: str) -> str:
     return '"' + text.replace('"', '""') + '"'
 
 
+_FTS_OPERATORS = re.compile(r'["()*^:]|\b(?:AND|OR|NOT|NEAR)\b')
+
+
+def auto_fts_query(text: str) -> str:
+    """Plain words (no FTS operators) become literal terms, ANDed.
+
+    ``route-policy PASS`` searches for both terms as written; a ``-`` or ``/`` is never read as
+    FTS syntax. Queries with quotes, parentheses, ``*``, ``^``, ``:`` or the upper-case
+    operators ``AND``/``OR``/``NOT``/``NEAR`` are passed to FTS5 unchanged.
+    """
+    if _FTS_OPERATORS.search(text):
+        return text
+    return " ".join(quote_fts_literal(word) for word in text.split())
+
+
 def _like_pattern(text: str) -> str:
     escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     return f"%{escaped}%"
@@ -721,7 +736,7 @@ class Store:
             if not literal and text.count('"') % 2:
                 # Older SQLite builds accept an unterminated phrase; reject it everywhere.
                 raise QuerySyntaxError("unbalanced quotes in search query")
-            params["q"] = quote_fts_literal(text) if literal else text
+            params["q"] = quote_fts_literal(text) if literal else auto_fts_query(text)
             sql = (
                 f"SELECT l.content_id, l.line_no, NULL, {_HIT_COLUMNS} FROM lines_fts f"
                 " JOIN lines l ON l.id = f.rowid"
