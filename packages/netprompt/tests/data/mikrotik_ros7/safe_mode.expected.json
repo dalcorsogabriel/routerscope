@@ -1,0 +1,58 @@
+[
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "/routing/bgp/connection",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": "/routing/bgp/connection",
+  "command": "print",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [
+   "safe_mode"
+  ],
+  "context": null,
+  "command": "/routing/bgp/connection",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [
+   "safe_mode"
+  ],
+  "context": "/routing/bgp/connection",
+  "command": "add name=peer1 remote.address=192.0.2.2 remote.as=64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [
+   "safe_mode"
+  ],
+  "context": "/routing/bgp/connection",
+  "command": "print",
+  "output_first_line": "Flags: X - disabled",
+  "output_line_count": 2
+ }
+]

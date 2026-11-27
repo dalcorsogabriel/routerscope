@@ -1,0 +1,98 @@
+[
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Cisco IOS XR Software, Version 7.5.2",
+  "output_line_count": 1
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "ssh 192.0.2.50",
+  "output_first_line": "Password:",
+  "output_line_count": 1
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "display version",
+  "output_first_line": "Huawei Versatile Routing Platform Software",
+  "output_line_count": 1
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "system-view",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": null,
+  "command": "bgp 64496",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": "bgp",
+  "command": "display this",
+  "output_first_line": "#",
+  "output_line_count": 2
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": "bgp",
+  "command": "return",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "quit",
+  "output_first_line": "Connection to 192.0.2.50 closed.",
+  "output_line_count": 1
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show clock",
+  "output_first_line": "10:00:00.000 UTC Mon Jan 1 2024",
+  "output_line_count": 1
+ }
+]

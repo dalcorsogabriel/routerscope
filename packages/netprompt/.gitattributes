@@ -1,0 +1,2 @@
+# Golden session logs contain raw control characters and CRLF; keep them byte-exact.
+tests/data/** -text

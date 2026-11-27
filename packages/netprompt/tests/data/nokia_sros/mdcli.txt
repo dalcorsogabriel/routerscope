@@ -1,0 +1,16 @@
+[/]
+A:admin@PE1# show version
+TiMOS-B-24.3.R1 both/x86_64 Nokia 7750 SR
+[/]
+A:admin@PE1# edit-config private
+INFO: CLI #2070: Entering private configuration mode
+[pr:/configure]
+A:admin@PE1# router "Base"
+[pr:/configure router "Base"]
+A:admin@PE1# autonomous-system 64496
+*[pr:/configure router "Base"]
+A:admin@PE1# commit
+[pr:/configure router "Base"]
+A:admin@PE1# quit-config
+[/]
+A:admin@PE1# 

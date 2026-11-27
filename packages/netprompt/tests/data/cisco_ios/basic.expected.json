@@ -1,0 +1,122 @@
+[
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "enable",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "terminal length 0",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Cisco IOS Software, ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 15.9(3)M6",
+  "output_line_count": 2
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show ip interface brief",
+  "output_first_line": "Interface              IP-Address      OK? Method Status                Protocol",
+  "output_line_count": 4
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "configure terminal",
+  "output_first_line": "Enter configuration commands, one per line.  End with CNTL/Z.",
+  "output_line_count": 1
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "interface GigabitEthernet0/1",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": "config-if",
+  "command": "ip address 198.51.100.1 255.255.255.0",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": "config-if",
+  "command": "exit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "router bgp 64496",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": "config-router",
+  "command": "neighbor 192.0.2.2 remote-as 64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "config",
+  "flags": [],
+  "context": "config-router",
+  "command": "end",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "R1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show ip route 203.0.113.0",
+  "output_first_line": "Routing entry for 203.0.113.0/24",
+  "output_line_count": 2
+ }
+]

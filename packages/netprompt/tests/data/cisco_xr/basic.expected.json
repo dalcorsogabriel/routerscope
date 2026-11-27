@@ -1,0 +1,82 @@
+[
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Cisco IOS XR Software, Version 7.5.2",
+  "output_line_count": 2
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "configure",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "router bgp 64496",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "config",
+  "flags": [],
+  "context": "config-bgp",
+  "command": "neighbor 192.0.2.9",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "config",
+  "flags": [],
+  "context": "config-bgp-nbr",
+  "command": "remote-as 64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "config",
+  "flags": [],
+  "context": "config-bgp-nbr",
+  "command": "commit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "config",
+  "flags": [],
+  "context": "config-bgp-nbr",
+  "command": "end",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "cisco_xr",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show bgp ipv4 unicast summary",
+  "output_first_line": "Neighbor        Spk    AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down  St/PfxRcd",
+  "output_line_count": 2
+ }
+]

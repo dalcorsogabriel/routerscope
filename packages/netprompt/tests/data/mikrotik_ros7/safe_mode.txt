@@ -1,0 +1,9 @@
+[admin@BNG1] > /routing/bgp/connection
+[admin@BNG1] /routing/bgp/connection> print
+[admin@BNG1] <SAFE>
+[admin@BNG1] <SAFE> /routing/bgp/connection
+[admin@BNG1] /routing/bgp/connection<SAFE> add name=peer1 remote.address=192.0.2.2 remote.as=64497
+[admin@BNG1] /routing/bgp/connection<SAFE> print
+Flags: X - disabled
+0 name="peer1" remote.address=192.0.2.2 remote.as=64497
+[admin@BNG1] /routing/bgp/connection<SAFE>

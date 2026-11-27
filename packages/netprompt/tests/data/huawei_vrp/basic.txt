@@ -1,0 +1,19 @@
+<PE1>display version
+Huawei Versatile Routing Platform Software
+VRP (R) software, Version 8.150 (NE40E V800R011C00SPC607B607)
+<PE1>screen-length 0 temporary
+Info: The configuration takes effect on the current user terminal interface only.
+<PE1>system-view
+Enter system view, return user view with Ctrl+Z.
+[~PE1]interface GigabitEthernet0/0/1
+[~PE1-GigabitEthernet0/0/1]ip address 192.0.2.1 24
+[*PE1-GigabitEthernet0/0/1]quit
+[*PE1]bgp 64496
+[*PE1-bgp]peer 192.0.2.2 as-number 64497
+[*PE1-bgp]commit
+[~PE1-bgp]quit
+[~PE1]return
+<PE1>display ip routing-table 198.51.100.0 24
+  Destination/Mask    Proto   Pre  Cost      Flags NextHop         Interface
+  ---- More ----[42D                                          [42D  198.51.100.0/24     Static  60   0          RD   192.0.2.2       GigabitEthernet0/0/1
+<PE1>

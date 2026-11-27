@@ -1,0 +1,82 @@
+[
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "enable",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Software version: OcNOS-SP-PLUS-x86-6.5.2-GA",
+  "output_line_count": 2
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "configure terminal",
+  "output_first_line": "Enter configuration commands, one per line. End with CNTL/Z.",
+  "output_line_count": 1
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "router bgp 64496",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "config",
+  "flags": [],
+  "context": "config-router",
+  "command": "neighbor 192.0.2.2 remote-as 64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "config",
+  "flags": [],
+  "context": "config-router",
+  "command": "exit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "exit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "ipinfusion_ocnos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show ip bgp summary",
+  "output_first_line": "BGP router identifier 203.0.113.1, local AS number 64496",
+  "output_line_count": 1
+ }
+]
