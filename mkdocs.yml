@@ -25,6 +25,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Storage: storage.md
   - Roadmap: roadmap.md
   - Guides:
       - guides/add-a-vendor.md
