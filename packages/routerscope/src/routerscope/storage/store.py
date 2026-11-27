@@ -718,6 +718,9 @@ class Store:
                 " WHERE l.text LIKE :q ESCAPE '\\' ORDER BY l.id DESC LIMIT :limit"
             )
         else:
+            if not literal and text.count('"') % 2:
+                # Older SQLite builds accept an unterminated phrase; reject it everywhere.
+                raise QuerySyntaxError("unbalanced quotes in search query")
             params["q"] = quote_fts_literal(text) if literal else text
             sql = (
                 f"SELECT l.content_id, l.line_no, NULL, {_HIT_COLUMNS} FROM lines_fts f"
