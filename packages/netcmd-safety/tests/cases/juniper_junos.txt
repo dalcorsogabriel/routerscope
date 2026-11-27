@@ -1,0 +1,66 @@
+# Juniper Junos
+
+read                show bgp summary
+read                sh bgp sum
+read                show route 192.0.2.0/24 exact detail
+read                show configuration protocols bgp | display set
+read                show configuration | display set | match neighbor
+read                show interfaces terse | except down
+read                show route receive-protocol bgp 192.0.2.1 | count
+read                show bgp neighbor | no-more
+read                show configuration | display json
+read                show log messages | last 50
+read                file show /var/log/messages
+read                file list /var/tmp
+read        @config show
+read        @config show protocols bgp
+read        @config show | compare
+read        @config run show bgp summary
+read        @config commit check
+read        @config status
+session             set cli screen-length 0
+session             set cli screen-width 0
+session             set cli timestamp
+session             quit
+session             exit
+session     @config edit protocols bgp
+session     @config top
+session     @config up
+session     @config exit
+
+destructive         show configuration | save /var/tmp/backup.conf
+destructive         show log messages | append /var/tmp/x
+destructive         show bgp summary | tee /var/tmp/x
+config              configure
+config              configure private
+config              configure exclusive
+config              edit
+destructive         request system reboot
+destructive         request system software add /var/tmp/junos.tgz
+destructive         clear bgp neighbor 192.0.2.1
+destructive         clear interfaces statistics all
+destructive         restart routing
+destructive         start shell
+destructive         file delete /var/tmp/x
+destructive         file copy /var/tmp/a /var/tmp/b
+destructive         op myscript
+config              set date 202611270000
+config              set protocols bgp group CUST neighbor 192.0.2.1
+destructive         delete protocols bgp
+config      @config set protocols bgp group CUST neighbor 192.0.2.1 peer-as 64497
+config      @config commit
+config      @config commit confirmed 5
+config      @config annotate protocols "maintenance"
+destructive @config delete protocols bgp group CUST
+destructive @config deactivate protocols bgp
+destructive @config rollback 1
+destructive @config load override /var/tmp/x.conf
+destructive @config set interfaces ge-0/0/0 disable
+destructive @config run request system reboot
+destructive @config show | save /var/tmp/x
+
+unknown             ping 192.0.2.1
+unknown             traceroute 192.0.2.1
+unknown             monitor traffic interface ge-0/0/0
+unknown             s
+unknown             show bgp summary | request message all message hi

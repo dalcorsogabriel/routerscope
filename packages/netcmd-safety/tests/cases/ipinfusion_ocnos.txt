@@ -1,0 +1,30 @@
+# IP Infusion OcNOS
+
+read                show ip bgp summary
+read                show running-config | include neighbor
+read                sh int brief
+read                show running-config bgp | grep remote-as
+read                show interface brief | exclude down
+read        @config do show ip bgp summary
+session             terminal length 0
+session             exit
+session             enable
+session     @config end
+
+config              configure terminal
+config              write
+config              write memory
+destructive         copy running-config startup-config
+destructive         reload
+destructive         clear ip bgp *
+destructive         clear bgp all soft in
+destructive         debug bgp all
+destructive         show running-config | redirect file.txt
+config      @config router bgp 64496
+config      @config commit
+destructive @config no neighbor 192.0.2.1 remote-as 64497
+destructive @config shutdown
+config      @config abort
+
+unknown             ping 192.0.2.1
+unknown             start-shell

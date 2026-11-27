@@ -1,0 +1,65 @@
+# Nokia SR OS (classic CLI and MD-CLI)
+
+read                show router bgp summary
+read                show router bgp neighbor 192.0.2.1 received-routes
+read                sh router interface
+read                show port
+read                show router route-table 192.0.2.0/24 longer
+read                show router bgp summary | match Established
+read                show router bgp summary | match "192.0.2" post-lines 2
+read                show port | count
+read                admin display-config
+read                admin show configuration
+read                admin show configuration bof
+read                info
+read                tools dump router segment-routing tunnel
+read                file dir cf3:
+read                file type cf3:/bof.cfg
+read                /show router bgp summary
+read                monitor port 1/1/1 rate interval 5 repeat 3
+read        @config info
+read        @config info detail
+read        @config compare
+read        @config validate
+read        @config /show router bgp summary
+session             environment no more
+session             environment more false
+session             exit
+session             logout
+session             edit-config read-only
+session     @config exit
+session     @config back
+session     @config top
+session     @config quit-config
+session     @config exit all
+
+config              configure
+config              configure router bgp
+config              edit-config private
+config              edit-config exclusive
+config              admin save
+config              environment save
+destructive         admin reboot now
+destructive         admin reboot active
+destructive         clear router bgp neighbor all
+destructive         clear port 1/1/1 statistics
+destructive         debug router bgp update
+destructive         tools perform router bgp-route-reflector
+destructive         file delete cf3:/old.cfg
+destructive         file copy cf3:/a cf3:/b
+destructive         exec cf3:/script.txt
+destructive         admin display-config > cf3:/backup.cfg
+config      @config router "Base" bgp group "CUST" neighbor "192.0.2.1" peer-as 64497
+config      @config commit
+config      @config commit confirmed 5
+destructive @config router "Base" bgp neighbor "192.0.2.1" admin-state disable
+destructive @config delete router "Base" bgp neighbor "192.0.2.1"
+destructive @config rollback 1
+destructive @config load full-replace cf3:/x.cfg
+destructive @config shutdown
+destructive @config no neighbor 192.0.2.1
+
+unknown             ping 192.0.2.1
+unknown             traceroute 192.0.2.1
+unknown             oam lsp-ping prefix 192.0.2.1/32
+unknown             show router bgp summary | file cf3:/x

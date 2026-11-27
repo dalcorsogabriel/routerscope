@@ -1,0 +1,78 @@
+# Cisco IOS / IOS-XE
+
+# --- read
+read                show ip bgp summary
+read                sh ip bgp sum
+read                sho run
+read                show running-config | include ^router bgp
+read                show running-config | i neighbor
+read                show run | section router bgp
+read                show ip bgp | include \*>
+read                sh ip int br | e unassigned
+read                show interfaces | begin GigabitEthernet0/0/1
+read                show ip route 192.0.2.0 255.255.255.0 longer-prefixes
+read                show version|i uptime
+read                show ip bgp neighbors 192.0.2.1 advertised-routes | count
+read                show logging | exclude %SYS
+read                SHOW IP BGP SUMMARY
+read                   show    ip   bgp   summary
+read        @config do show ip interface brief
+read        @config do sh run | s interface
+
+# --- session-only settings
+session             terminal length 0
+session             term len 0
+session             terminal width 512
+session             terminal monitor
+session             terminal no monitor
+session             exit
+session             end
+session             enable
+session             logout
+
+# --- writes that must never pass as read
+destructive         show running-config | redirect flash:backup.cfg
+destructive         show tech-support | tee bootflash:tech.txt
+destructive         show run | append flash:log.txt
+destructive         show run | i bgp | redirect flash:x
+config              configure terminal
+config              conf t
+destructive         configure replace flash:old.cfg
+config              write memory
+config              wr
+destructive         write erase
+destructive         copy running-config startup-config
+destructive         copy tftp: flash:
+destructive         reload
+destructive         reload in 5
+destructive         clear ip bgp *
+destructive         clear ip bgp 192.0.2.1 soft in
+destructive         clear counters
+destructive         delete flash:config.old
+destructive         erase startup-config
+destructive         format flash:
+destructive         debug ip bgp updates
+config              undebug all
+destructive         no debug all
+destructive         no router bgp 64496
+destructive         shutdown
+config      @config interface GigabitEthernet0/0/1
+config      @config router bgp 64496
+config      @config ip prefix-list PL-CUST seq 5 permit 192.0.2.0/24
+destructive @config shutdown
+destructive @config no neighbor 192.0.2.1
+destructive @config neighbor 192.0.2.1 shutdown
+destructive @config do reload
+session     @config end
+session     @config exit
+
+# --- unknown (fail closed)
+unknown             ping 192.0.2.1
+unknown             traceroute 192.0.2.1
+unknown             ssh -l admin 192.0.2.1
+unknown             s
+unknown             show run | utility head
+unknown             show run |
+unknown             interface GigabitEthernet0/0/1
+unknown             router bgp 64496
+unknown             foo bar

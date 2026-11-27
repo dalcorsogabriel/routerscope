@@ -1,6 +1,6 @@
 [project]
 name = "netcmd-safety"
-version = "0.0.1"
+version = "0.1.0"
 description = "Classify network CLI commands as read, config or destructive, per vendor."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,7 +9,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "routerscope contributors" }]
 keywords = ["network", "cli", "safety", "cisco", "huawei", "mikrotik", "juniper", "nokia"]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Telecommunications Industry",
     "Intended Audience :: System Administrators",
     "Operating System :: OS Independent",

@@ -1,0 +1,58 @@
+# Huawei VRP (V5 and V8)
+
+read                display bgp peer
+read                dis bgp peer
+read                display bgp ipv6 peer verbose
+read                dis cu
+read                display current-configuration configuration bgp
+read                display current-configuration | include peer
+read                display current-configuration | i peer
+read                display interface brief | exclude down
+read                display ip routing-table 192.0.2.0 24 longer-match
+read                display bgp routing-table peer 192.0.2.1 received-routes
+read                display this
+read                display diagnostic-information
+read                display current-configuration | no-more
+read                display bgp peer | count
+read        @config display this
+read        @config dis cu int GigabitEthernet0/0/1
+session             screen-length 0 temporary
+session             undo screen-length temporary
+session             screen-width 512 temporary
+session             quit
+session             return
+session     @config quit
+session     @config return
+
+config              system-view
+config              sys
+config              save
+config              save force
+destructive         reset bgp all
+destructive         reset bgp 192.0.2.1
+destructive         reset counters interface
+destructive         reboot
+destructive         startup saved-configuration old.cfg
+destructive         delete cfcard:/vrpcfg.zip
+destructive         format cfcard:
+destructive         debugging bgp all
+destructive         undo peer 192.0.2.1
+destructive         undo bgp
+destructive         display diagnostic-information diag.txt
+config              screen-length 0
+destructive         copy vrpcfg.zip backup.zip
+config      @config bgp 64496
+config      @config peer 192.0.2.1 as-number 64497
+config      @config interface GigabitEthernet0/0/1
+config      @config commit
+destructive @config undo peer 192.0.2.1
+destructive @config shutdown
+destructive @config peer 192.0.2.1 ignore
+destructive @config rollback configuration to commit-id 1000000001
+destructive @config clear configuration candidate
+
+unknown             ping 192.0.2.1
+unknown             tracert 192.0.2.1
+unknown             d
+unknown             bgp 64496
+unknown             display bgp peer | redirect x
