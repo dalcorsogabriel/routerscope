@@ -1,0 +1,13 @@
+RP/0/RSP0/CPU0:BNG1#show version
+Cisco IOS XR Software, Version 7.5.2
+Copyright (c) 2013-2022 by Cisco Systems, Inc.
+RP/0/RSP0/CPU0:BNG1#configure
+RP/0/RSP0/CPU0:BNG1(config)#router bgp 64496
+RP/0/RSP0/CPU0:BNG1(config-bgp)#neighbor 192.0.2.9
+RP/0/RSP0/CPU0:BNG1(config-bgp-nbr)#remote-as 64497
+RP/0/RSP0/CPU0:BNG1(config-bgp-nbr)#commit
+RP/0/RSP0/CPU0:BNG1(config-bgp-nbr)#end
+RP/0/RSP0/CPU0:BNG1#show bgp ipv4 unicast summary
+Neighbor        Spk    AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down  St/PfxRcd
+192.0.2.9         0 64497      12      11       10    0    0 00:05:12          3
+RP/0/RSP0/CPU0:BNG1#

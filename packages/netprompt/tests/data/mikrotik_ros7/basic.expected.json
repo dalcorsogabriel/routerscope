@@ -1,0 +1,42 @@
+[
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "/system resource print",
+  "output_first_line": "                   uptime: 1w2d",
+  "output_line_count": 3
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "/ip/address",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": "/ip/address",
+  "command": "print",
+  "output_first_line": "Columns: ADDRESS, NETWORK, INTERFACE",
+  "output_line_count": 4
+ },
+ {
+  "device": "BNG1",
+  "vendor": "mikrotik_ros7",
+  "mode": "exec",
+  "flags": [],
+  "context": "/ip/address",
+  "command": "/",
+  "output_first_line": "",
+  "output_line_count": 0
+ }
+]

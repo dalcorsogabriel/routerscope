@@ -1,0 +1,138 @@
+[
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "display version",
+  "output_first_line": "Huawei Versatile Routing Platform Software",
+  "output_line_count": 2
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "screen-length 0 temporary",
+  "output_first_line": "Info: The configuration takes effect on the current user terminal interface only.",
+  "output_line_count": 1
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "system-view",
+  "output_first_line": "Enter system view, return user view with Ctrl+Z.",
+  "output_line_count": 1
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": null,
+  "command": "interface GigabitEthernet0/0/1",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": "GigabitEthernet0/0/1",
+  "command": "ip address 192.0.2.1 24",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "GigabitEthernet0/0/1",
+  "command": "quit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": null,
+  "command": "bgp 64496",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "bgp",
+  "command": "peer 192.0.2.2 as-number 64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "bgp",
+  "command": "commit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": "bgp",
+  "command": "quit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [
+   "two_stage"
+  ],
+  "context": null,
+  "command": "return",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "display ip routing-table 198.51.100.0 24",
+  "output_first_line": "  Destination/Mask    Proto   Pre  Cost      Flags NextHop         Interface",
+  "output_line_count": 2
+ }
+]

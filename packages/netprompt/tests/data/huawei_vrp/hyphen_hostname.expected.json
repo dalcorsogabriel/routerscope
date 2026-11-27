@@ -1,0 +1,82 @@
+[
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "display current-configuration interface",
+  "output_first_line": "interface GigabitEthernet0/0/1",
+  "output_line_count": 4
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "system-view",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "interface GigabitEthernet0/0/2",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": "GigabitEthernet0/0/2",
+  "command": "shutdown",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": "GigabitEthernet0/0/2",
+  "command": "quit",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "isis 1",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": "isis-1",
+  "command": "network-entity 49.0001.0000.0000.0001.00",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE-SP-01",
+  "vendor": "huawei_vrp",
+  "mode": "config",
+  "flags": [],
+  "context": "isis-1",
+  "command": "return",
+  "output_first_line": "",
+  "output_line_count": 0
+ }
+]

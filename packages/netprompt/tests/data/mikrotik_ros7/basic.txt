@@ -1,0 +1,12 @@
+[admin@BNG1] > /system resource print
+                   uptime: 1w2d
+                  version: 7.11.2 (stable)
+                 platform: MikroTik
+[admin@BNG1] > /ip/address
+[admin@BNG1] /ip/address> print
+Columns: ADDRESS, NETWORK, INTERFACE
+# ADDRESS           NETWORK      INTERFACE
+0 192.0.2.1/24      192.0.2.0    ether1
+-- [Q quit|D dump|down]                       1 198.51.100.1/24   198.51.100.0 ether2
+[admin@BNG1] /ip/address> /
+[admin@BNG1] >

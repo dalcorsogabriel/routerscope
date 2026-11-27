@@ -1,0 +1,11 @@
+P-CORE-1#show running-config | include prefix-list
+ip prefix-list CUST-A seq 5 permit 192.0.2.0/24
+ip prefix-list CUST-A seq 10 permit 198.51.100.0/24 le 28
+P-CORE-1#[1mshow clock[0m
+[32m*10:15:01.123 UTC Mon Jan 1 2024[0m
+P-CORE-1#show ipv6 route 2001:db8::/32
+Routing entry for 2001:db8::/32
+[OK]
+P-CORE-1#shwow version
+Cisco IOS XE Software, Version 17.03.04
+P-CORE-1#

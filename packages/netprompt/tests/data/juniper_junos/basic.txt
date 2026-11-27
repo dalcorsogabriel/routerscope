@@ -1,0 +1,42 @@
+user@P-CORE-1> show version
+Hostname: P-CORE-1
+Model: mx204
+Junos: 21.4R3-S2
+
+{master:0}
+user@P-CORE-1> show route 192.0.2.0/24
+
+inet.0: 5 destinations, 5 routes (5 active, 0 holddown, 0 hidden)
++ = Active Route, - = Last Active, * = Both
+
+192.0.2.0/24       *[Static/5] 00:10:11
+---(more 35%)---                                    > to 198.51.100.1 via ge-0/0/0.0
+
+{master:0}
+user@P-CORE-1> configure
+Entering configuration mode
+
+[edit]
+user@P-CORE-1# edit protocols bgp
+
+[edit protocols bgp]
+user@P-CORE-1# set group EBGP neighbor 192.0.2.2 peer-as 64497
+
+[edit protocols bgp]
+user@P-CORE-1# show | compare
+[edit protocols bgp]
++   group EBGP {
++       neighbor 192.0.2.2 {
++           peer-as 64497;
++       }
++   }
+
+[edit protocols bgp]
+user@P-CORE-1# top
+
+[edit]
+user@P-CORE-1# exit
+Exiting configuration mode
+
+{master:0}
+user@P-CORE-1>

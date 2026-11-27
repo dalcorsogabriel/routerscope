@@ -1,0 +1,15 @@
+A:PE1# show version
+TiMOS-B-22.10.R3 both/x86_64 Nokia 7750 SR Copyright (c) 2000-2022 Nokia.
+A:PE1# environment no more
+A:PE1# configure router
+A:PE1>config>router# bgp
+A:PE1>config>router>bgp# group "EBGP"
+*A:PE1>config>router>bgp>group$ neighbor 192.0.2.2
+*A:PE1>config>router>bgp# info
+            router-id 203.0.113.1
+Press any key to continue (Q to quit)                                                 autonomous-system 64496
+*A:PE1>config>router>bgp# exit all
+*A:PE1# admin save
+B:PE1# show redundancy synchronization
+Sync Status: OK
+B:PE1#

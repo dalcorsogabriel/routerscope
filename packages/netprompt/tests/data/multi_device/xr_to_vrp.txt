@@ -1,0 +1,16 @@
+RP/0/RSP0/CPU0:P-CORE-1#show version
+Cisco IOS XR Software, Version 7.5.2
+RP/0/RSP0/CPU0:P-CORE-1#ssh 192.0.2.50
+Password:
+<PE-SP-01>display version
+Huawei Versatile Routing Platform Software
+<PE-SP-01>system-view
+[~PE-SP-01]bgp 64496
+[~PE-SP-01-bgp]display this
+#
+bgp 64496
+[~PE-SP-01-bgp]return
+<PE-SP-01>quit
+Connection to 192.0.2.50 closed.
+RP/0/RSP0/CPU0:P-CORE-1#show clock
+10:00:00.000 UTC Mon Jan 1 2024

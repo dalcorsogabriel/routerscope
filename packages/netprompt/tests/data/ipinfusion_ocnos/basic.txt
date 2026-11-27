@@ -1,0 +1,13 @@
+BNG1>enable
+BNG1#show version
+Software version: OcNOS-SP-PLUS-x86-6.5.2-GA
+Copyright (c) 2023 IP Infusion Inc. All Rights Reserved.
+BNG1#configure terminal
+Enter configuration commands, one per line. End with CNTL/Z.
+BNG1(config)#router bgp 64496
+BNG1(config-router)#neighbor 192.0.2.2 remote-as 64497
+BNG1(config-router)#exit
+BNG1(config)#exit
+BNG1#show ip bgp summary
+BGP router identifier 203.0.113.1, local AS number 64496
+BNG1#

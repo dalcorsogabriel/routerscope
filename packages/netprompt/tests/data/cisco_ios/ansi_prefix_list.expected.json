@@ -1,0 +1,42 @@
+[
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show running-config | include prefix-list",
+  "output_first_line": "ip prefix-list CUST-A seq 5 permit 192.0.2.0/24",
+  "output_line_count": 2
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show clock",
+  "output_first_line": "*10:15:01.123 UTC Mon Jan 1 2024",
+  "output_line_count": 1
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show ipv6 route 2001:db8::/32",
+  "output_first_line": "Routing entry for 2001:db8::/32",
+  "output_line_count": 2
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "cisco_ios",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Cisco IOS XE Software, Version 17.03.04",
+  "output_line_count": 1
+ }
+]

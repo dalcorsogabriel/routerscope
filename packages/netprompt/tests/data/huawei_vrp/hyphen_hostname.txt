@@ -1,0 +1,13 @@
+<PE-SP-01>display current-configuration interface
+interface GigabitEthernet0/0/1
+ ip address 203.0.113.1 255.255.255.0
+#
+return
+<PE-SP-01>system-view
+[PE-SP-01]interface GigabitEthernet0/0/2
+[PE-SP-01-GigabitEthernet0/0/2]shutdown
+[PE-SP-01-GigabitEthernet0/0/2]quit
+[PE-SP-01]isis 1
+[PE-SP-01-isis-1]network-entity 49.0001.0000.0000.0001.00
+[PE-SP-01-isis-1]return
+<PE-SP-01>

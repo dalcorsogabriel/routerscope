@@ -1,0 +1,82 @@
+[
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "Hostname: P-CORE-1",
+  "output_line_count": 3
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show route 192.0.2.0/24",
+  "output_first_line": "",
+  "output_line_count": 6
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "configure",
+  "output_first_line": "Entering configuration mode",
+  "output_line_count": 1
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "edit protocols bgp",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "config",
+  "flags": [],
+  "context": "protocols bgp",
+  "command": "set group EBGP neighbor 192.0.2.2 peer-as 64497",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "config",
+  "flags": [],
+  "context": "protocols bgp",
+  "command": "show | compare",
+  "output_first_line": "[edit protocols bgp]",
+  "output_line_count": 6
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "config",
+  "flags": [],
+  "context": "protocols bgp",
+  "command": "top",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "P-CORE-1",
+  "vendor": "juniper_junos",
+  "mode": "config",
+  "flags": [],
+  "context": null,
+  "command": "exit",
+  "output_first_line": "Exiting configuration mode",
+  "output_line_count": 1
+ }
+]

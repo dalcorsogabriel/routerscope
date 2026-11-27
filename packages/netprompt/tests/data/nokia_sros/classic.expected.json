@@ -1,0 +1,112 @@
+[
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "show version",
+  "output_first_line": "TiMOS-B-22.10.R3 both/x86_64 Nokia 7750 SR Copyright (c) 2000-2022 Nokia.",
+  "output_line_count": 1
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "environment no more",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "exec",
+  "flags": [],
+  "context": null,
+  "command": "configure router",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "config",
+  "flags": [],
+  "context": "config>router",
+  "command": "bgp",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "config",
+  "flags": [],
+  "context": "config>router>bgp",
+  "command": "group \"EBGP\"",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "config>router>bgp>group",
+  "command": "neighbor 192.0.2.2",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "config>router>bgp",
+  "command": "info",
+  "output_first_line": "            router-id 203.0.113.1",
+  "output_line_count": 2
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "config",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": "config>router>bgp",
+  "command": "exit all",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "exec",
+  "flags": [
+   "uncommitted"
+  ],
+  "context": null,
+  "command": "admin save",
+  "output_first_line": "",
+  "output_line_count": 0
+ },
+ {
+  "device": "PE1",
+  "vendor": "nokia_sros",
+  "mode": "exec",
+  "flags": [
+   "standby"
+  ],
+  "context": null,
+  "command": "show redundancy synchronization",
+  "output_first_line": "Sync Status: OK",
+  "output_line_count": 1
+ }
+]
