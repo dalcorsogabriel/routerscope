@@ -49,3 +49,9 @@ addopts = "-ra --import-mode=importlib"
 [tool.mypy]
 python_version = "3.12"
 warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
