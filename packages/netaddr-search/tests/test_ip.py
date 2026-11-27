@@ -18,6 +18,7 @@ from netaddr_search import (
     parse_network,
     query_params,
     relation,
+    sql_fragments,
 )
 
 N = ipaddress.ip_network
@@ -71,7 +72,14 @@ def test_parse_invalid(text: str) -> None:
 
 
 def test_parse_non_string() -> None:
-    assert parse_network(None) is None  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        parse_network(None)  # type: ignore[arg-type]
+
+
+def test_parse_any_and_host_ambiguity() -> None:
+    assert str(parse_network("0.0.0.0 255.255.255.255")) == "0.0.0.0/0"
+    assert str(parse_network("192.0.2.1 255.255.255.255")) == "192.0.2.1/32"
+    assert str(parse_network("192.0.2.1 0.0.0.0")) == "192.0.2.1/32"
 
 
 def test_relation_table() -> None:
@@ -220,9 +228,39 @@ def test_find_wildcard_pair() -> None:
     assert m.kind is MatchKind.WILDCARD
 
 
-def test_find_default_route_not_paired() -> None:
-    got = [m.text for m in find_ips("ip route 0.0.0.0 0.0.0.0 198.51.100.1")]
-    assert got == ["0.0.0.0", "0.0.0.0", "198.51.100.1"]
+def test_find_default_route() -> None:
+    # Changed: used to be two 0.0.0.0/32 ADDRESS matches.
+    m1, m2 = find_ips("ip route 0.0.0.0 0.0.0.0 192.0.2.1")
+    assert (m1.text, str(m1.network), m1.kind) == ("0.0.0.0 0.0.0.0", "0.0.0.0/0", MatchKind.MASK)
+    assert (m1.start, m1.end) == (9, 24)
+    assert (m2.text, str(m2.network), m2.kind) == ("192.0.2.1", "192.0.2.1/32", MatchKind.ADDRESS)
+
+
+def test_find_acl_any_and_host_wildcard() -> None:
+    (m,) = find_ips("permit ip 0.0.0.0 255.255.255.255")
+    assert (str(m.network), m.kind) == ("0.0.0.0/0", MatchKind.WILDCARD)
+    (m,) = find_ips("permit ip host 192.0.2.1 0.0.0.0")
+    assert (str(m.network), m.kind) == ("192.0.2.1/32", MatchKind.WILDCARD)
+
+
+def test_find_skip_after_version_words() -> None:
+    text = "RouterOS version 7.16.1.0 peer 192.0.2.1\nBuild: 7.16.1.1 and 198.51.100.7"
+    assert [m.text for m in find_ips(text)] == [
+        "7.16.1.0",
+        "192.0.2.1",
+        "7.16.1.1",
+        "198.51.100.7",
+    ]
+    got = [m.text for m in find_ips(text, skip_after=("version", "build", "release"))]
+    assert got == ["192.0.2.1", "198.51.100.7"]
+    # word boundary and same line only
+    assert [m.text for m in find_ips("subversion 192.0.2.1", skip_after=("version",))] == [
+        "192.0.2.1"
+    ]
+    assert [m.text for m in find_ips("version\n192.0.2.1", skip_after=("version",))] == [
+        "192.0.2.1"
+    ]
+    assert list(find_ips("VERSION=7.16.1.0", skip_after=("version",))) == []
 
 
 def test_find_nonmask_second_not_paired() -> None:
@@ -236,7 +274,13 @@ def test_find_prefix_len_too_big() -> None:
 
 
 def test_find_ipv6_forms() -> None:
-    assert [m.text for m in find_ips("::1 and :: and 2001:db8::")] == ["::1", "::", "2001:db8::"]
+    # Changed: a standalone "::" is no longer matched.
+    assert [m.text for m in find_ips("::1 and :: and 2001:db8::")] == ["::1", "2001:db8::"]
+    assert list(find_ips("at :: now")) == []
+    assert [(m.text, str(m.network)) for m in find_ips("::/0 and ::/128")] == [
+        ("::/0", "::/0"),
+        ("::/128", "::/128"),
+    ]
     (m,) = find_ips("addr ::ffff:192.0.2.1 up")
     assert m.address == ipaddress.IPv6Address("::ffff:c000:201")
     (m,) = find_ips("full 2001:0db8:0000:0000:0000:0000:0000:0001.")
@@ -273,3 +317,32 @@ def test_find_negatives(text: str) -> None:
 def test_find_multiline_no_cross_line_pair() -> None:
     got = [m.text for m in find_ips("192.0.2.1\n255.255.255.0")]
     assert got == ["192.0.2.1", "255.255.255.0"]
+
+
+def test_sql_fragments_default_equals_constants() -> None:
+    frags = sql_fragments()
+    assert frags == {"inside": SQL_INSIDE, "covering": SQL_COVERING, "overlaps": SQL_OVERLAPS}
+
+
+def test_sql_fragments_prefix_sqlite() -> None:
+    db = sqlite3.connect(":memory:")
+    db.execute("CREATE TABLE t (name TEXT, ip_version INTEGER, ip_start BLOB, ip_end BLOB)")
+    rows = ["192.0.2.0/24", "192.0.2.128/25", "198.51.100.0/24", "2001:db8::/32"]
+    for r in rows:
+        v, a, b = bounds(N(r))
+        db.execute("INSERT INTO t VALUES (?, ?, ?, ?)", (r, v, a, b))
+    frags = sql_fragments("ip_")
+    params = query_params(N("192.0.2.0/24"))
+    got = {
+        k: {r[0] for r in db.execute(f"SELECT name FROM t WHERE {sql}", params)}
+        for k, sql in frags.items()
+    }
+    db.close()
+    assert got["inside"] == {"192.0.2.0/24", "192.0.2.128/25"}
+    assert got["covering"] == {"192.0.2.0/24"}
+    assert got["overlaps"] == {"192.0.2.0/24", "192.0.2.128/25"}
+
+
+def test_sql_fragments_rejects_bad_prefix() -> None:
+    with pytest.raises(ValueError, match="prefix"):
+        sql_fragments('x" OR 1=1 --')

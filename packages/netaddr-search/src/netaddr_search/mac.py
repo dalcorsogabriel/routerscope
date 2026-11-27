@@ -21,8 +21,10 @@ def normalize_mac(text: str) -> str | None:
     """Return the canonical lowercase ``aa:bb:cc:dd:ee:ff`` form, or ``None`` if invalid.
 
     Accepts colon, hyphen, Cisco dotted (``aabb.ccdd.eeff``), Huawei (``aabb-ccdd-eeff``)
-    and bare (``aabbccddeeff``) notations.
+    and bare (``aabbccddeeff``) notations. Raises ``TypeError`` if ``text`` is not a ``str``.
     """
+    if not isinstance(text, str):
+        raise TypeError(f"MAC address must be str, not {type(text).__name__}")
     s = text.strip().lower()
     if not any(p.fullmatch(s) for p in _FULL):
         return None

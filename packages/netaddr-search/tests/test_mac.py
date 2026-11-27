@@ -99,3 +99,10 @@ def test_find_macs() -> None:
 )
 def test_find_macs_negatives(text: str) -> None:
     assert list(find_macs(text)) == []
+
+
+def test_non_string_raises_type_error() -> None:
+    with pytest.raises(TypeError):
+        normalize_mac(None)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        normalize_mac(b"aabbccddeeff")  # type: ignore[arg-type]

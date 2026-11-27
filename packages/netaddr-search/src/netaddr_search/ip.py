@@ -1,4 +1,10 @@
-"""IP address and prefix parsing, containment relations, SQL helpers and text extraction."""
+"""IP address and prefix parsing, containment relations, SQL helpers and text extraction.
+
+Different IP versions are always :attr:`Relation.DISJOINT` and the ``SQL_*`` fragments filter on
+``version``: IPv4-mapped IPv6 (``::ffff:192.0.2.1``) never matches IPv4 rows. The SQL fragments
+assume columns named ``version``, ``start`` and ``end``; use :func:`sql_fragments` for
+prefixed column names.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +39,7 @@ __all__ = [
     "parse_network",
     "query_params",
     "relation",
+    "sql_fragments",
 ]
 
 
@@ -53,13 +60,16 @@ def _pair_network(addr: IPv4Address, second: IPv4Address) -> tuple[IPv4Network, 
     """Combine ``addr`` with a netmask or a wildcard; returns (network, kind) or None.
 
     A contiguous netmask wins, except that ``0.0.0.0`` after a non-zero address is read as
-    the wildcard of a single host (``192.0.2.1 0.0.0.0`` -> /32).
+    the wildcard of a single host (``192.0.2.1 0.0.0.0`` -> /32). ``0.0.0.0 0.0.0.0`` is the
+    default route (mask, /0) and ``0.0.0.0 255.255.255.255`` is the ACL "any" (wildcard, /0).
     """
     value = int(second)
     if value == 0:
         if int(addr) == 0:
             return IPv4Network("0.0.0.0/0"), "mask"
         return IPv4Network(addr), "wildcard"
+    if value == 0xFFFFFFFF and int(addr) == 0:
+        return IPv4Network("0.0.0.0/0"), "wildcard"
     if _contiguous_mask(value):
         prefix = bin(value).count("1")
         return IPv4Network((addr, prefix), strict=False), "mask"
@@ -73,9 +83,17 @@ def parse_network(text: str) -> Network | None:
     """Parse a host, CIDR prefix, ``ip mask`` or ``ip wildcard`` into a network.
 
     Host addresses become /32 or /128. CIDR is non-strict (``192.0.2.5/24`` becomes
-    ``192.0.2.0/24``). Wildcards must be contiguous. Returns ``None`` for invalid input.
+    ``192.0.2.0/24``). Wildcards must be contiguous. Returns ``None`` for invalid input and
+    raises ``TypeError`` if ``text`` is not a ``str``.
+
+    Ambiguity of ``a b``: ``255.255.255.255`` is both the /32 mask and the all-ones wildcard.
+    When ``a`` is ``0.0.0.0`` it is read as the wildcard "any" (``0.0.0.0/0``); after a
+    non-zero address it is a /32 mask. Likewise ``0.0.0.0`` after a non-zero address is the
+    wildcard of a single host (/32) and ``0.0.0.0 0.0.0.0`` is the mask form of /0.
     """
-    if not isinstance(text, str) or "%" in text:
+    if not isinstance(text, str):
+        raise TypeError(f"expected str, not {type(text).__name__}")
+    if "%" in text:
         return None
     parts = text.split()
     try:
@@ -139,6 +157,23 @@ SQL_COVERING = '"version" = :version AND "start" <= :start AND "end" >= :end'
 
 SQL_OVERLAPS = '"version" = :version AND "start" <= :end AND "end" >= :start'
 """Rows sharing at least one address with the query network."""
+
+
+def sql_fragments(prefix: str = "") -> dict[str, str]:
+    """Return the ``inside``, ``covering`` and ``overlaps`` fragments for prefixed columns.
+
+    Columns are named ``{prefix}version``, ``{prefix}start`` and ``{prefix}end``; bind with
+    :func:`query_params`. ``sql_fragments()`` equals the unprefixed ``SQL_INSIDE``,
+    ``SQL_COVERING`` and ``SQL_OVERLAPS``. ``prefix`` must consist of word characters only.
+    """
+    if not re.fullmatch(r"\w*", prefix):
+        raise ValueError(f"invalid column prefix: {prefix!r}")
+    v, s, e = (f'"{prefix}{c}"' for c in ("version", "start", "end"))
+    return {
+        "inside": f"{v} = :version AND {s} >= :start AND {e} <= :end",
+        "covering": f"{v} = :version AND {s} <= :start AND {e} >= :end",
+        "overlaps": f"{v} = :version AND {s} <= :end AND {e} >= :start",
+    }
 
 
 def query_params(net: Network) -> dict[str, object]:
@@ -205,8 +240,7 @@ def _find_v4(text: str) -> Iterator[IPMatch]:
         if pair is not None:
             second = _v4(pair.group(1))
             combined = _pair_network(addr, second) if second is not None else None
-            # A bare 0.0.0.0 second token is too ambiguous in free text.
-            if combined is not None and second is not None and int(second) != 0:
+            if combined is not None and second is not None:
                 net, kind = combined
                 yield IPMatch(
                     start,
@@ -255,16 +289,35 @@ def _find_v6(text: str) -> Iterator[IPMatch]:
                 IPv6Network((addr, plen), strict=False),
                 MatchKind.PREFIX,
             )
-        else:
+        elif cand != "::":  # a standalone "::" is too common in prose; "::/0" matches above
             yield IPMatch(start, end, cand, addr, IPv6Network(addr), MatchKind.ADDRESS)
 
 
-def find_ips(text: str) -> Iterator[IPMatch]:
+def _skipped(text: str, start: int, words: tuple[str, ...]) -> bool:
+    """True when the same-line text before ``start`` ends with one of ``words``."""
+    line_start = text.rfind("\n", 0, start) + 1
+    before = text[line_start:start].rstrip(" \t:=").lower()
+    for w in words:
+        w = w.lower()
+        if before.endswith(w) and (len(before) == len(w) or not before[-len(w) - 1].isalnum()):
+            return True
+    return False
+
+
+def find_ips(text: str, *, skip_after: tuple[str, ...] = ()) -> Iterator[IPMatch]:
     """Yield IPv4/IPv6 addresses and prefixes found in free text, in order of position.
 
     Recognized: bare addresses, ``addr/len``, ``addr netmask`` and ``addr wildcard`` pairs
-    (IPv4; non-zero masks/wildcards only), compressed IPv6 and IPv4-mapped IPv6. Not matched:
-    version strings (``7.16.1``), timestamps, MAC addresses, interface names (``1/1/1``).
+    (IPv4), compressed IPv6 and IPv4-mapped IPv6. ``0.0.0.0 0.0.0.0`` yields one ``0.0.0.0/0``
+    MASK match and ``0.0.0.0 255.255.255.255`` one ``0.0.0.0/0`` WILDCARD match; see
+    :func:`parse_network` for the pairing rules. A standalone ``::`` is not matched (``::/0``
+    and ``::1`` are). Not matched: three-part version strings (``7.16.1``), timestamps, MAC
+    addresses, interface names (``1/1/1``).
+
+    Caveat: a four-part version number (``7.16.1.0``) is indistinguishable from an IPv4 address
+    and is returned. Pass ``skip_after=("version", "build", "release")`` to drop matches whose
+    preceding same-line text (ignoring spaces, ``:`` and ``=``) ends with one of those words,
+    compared case-insensitively.
     """
     found = [*_find_v4(text), *_find_v6(text)]
     found.sort(key=lambda x: x.start)
@@ -272,4 +325,6 @@ def find_ips(text: str) -> Iterator[IPMatch]:
     for item in found:
         if item.start >= last_end:
             last_end = item.end
+            if skip_after and _skipped(text, item.start, skip_after):
+                continue
             yield item

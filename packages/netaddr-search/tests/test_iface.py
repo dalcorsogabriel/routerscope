@@ -23,7 +23,8 @@ from netaddr_search import (
         ("Te0/0/0/1", "cisco_xr", "TenGigE0/0/0/1"),
         ("TenGigE0/0/0/1", "cisco_xr", "TenGigE0/0/0/1"),
         ("Twe1/0/1", "cisco_ios", "TwentyFiveGigE1/0/1"),
-        ("Fo1/0/1", "cisco_ios", "FortyGigE1/0/1"),
+        ("Fo1/0/1", "cisco_ios", "FortyGigabitEthernet1/0/1"),
+        ("Fo1/0/1", "cisco_xr", "FortyGigE1/0/1"),
         ("Hu0/0/0/0", "cisco_xr", "HundredGigE0/0/0/0"),
         ("Fa0/1", "cisco_ios", "FastEthernet0/1"),
         ("Eth1/1", "cisco_ios", "Ethernet1/1"),
@@ -125,7 +126,9 @@ _numbers = st.from_regex(r"\d{1,2}(/\d{1,2}){0,3}(\.\d{1,3})?", fullmatch=True)
 _prefixes = st.sampled_from(
     [
         "Gi", "GigabitEthernet", "Te", "TenGigE", "Twe", "Fo", "Hu", "Fa", "Eth", "Po", "BE",
-        "Lo", "Vl", "Tu", "Mg", "Se", "BDI", "GE", "XGE", "25GE", "40GE", "100GE", "Eth-Trunk",
+        "Lo", "Vl", "Tu", "Mg", "Se", "BDI", "GE",
+        "Gig", "Gig ", "Ten", "Fas", "Fo", "FortyGigabitEthernet",
+        "XGE", "25GE", "40GE", "100GE", "Eth-Trunk",
         "LoopBack", "Vlanif", "NULL", "MEth", "ge-", "xe-", "et-", "ae", "lo", "irb", "ether",
         "sfp-sfpplus", "bridge", "vlan", "lag-", "esat-", "xe", "po", "",
     ]
@@ -163,3 +166,50 @@ def test_unknown_family_tengige_matches_short_form() -> None:
     assert same_interface("te0", "TenGigE0")
     assert same_interface("TenGigabitEthernet0/1", "TenGigE0/1")
     assert not same_interface("TenGigE0/1", "TenGigE0/2")
+
+
+@pytest.mark.parametrize(
+    ("name", "vendor", "expected"),
+    [
+        ("Gig 0/1", "cisco_ios", "GigabitEthernet0/1"),
+        ("Gig0/1", None, "GigabitEthernet0/1"),
+        ("Ten1/1/1", None, "TenGigabitEthernet1/1/1"),
+        ("Ten1/1/1", "cisco_xr", "TenGigE1/1/1"),
+        ("Fas0/1", "cisco_ios", "FastEthernet0/1"),
+        ("fas0/1", None, "FastEthernet0/1"),
+        ("Gi 0/1", None, "GigabitEthernet0/1"),
+        ("Fo 1/0/1", None, "FortyGigabitEthernet1/0/1"),
+        ("Gigabit0/1", "huawei_vrp", "GigabitEthernet0/1"),
+        ("Po1", "cisco_ios", "Port-channel1"),
+        ("Port1", "cisco_ios", "Port-channel1"),
+        # too short or ambiguous prefixes are left alone
+        ("G0/1", "cisco_ios", "G0/1"),
+        ("Eth-T1", "huawei_vrp", "Eth-Trunk1"),
+        ("Et1", "huawei_vrp", "Et1"),
+        ("Zz1", "cisco_ios", "Zz1"),
+    ],
+)
+def test_prefix_abbreviations(name: str, vendor: str | None, expected: str) -> None:
+    assert normalize_interface(name, vendor) == expected
+
+
+def test_ambiguous_prefix_unchanged() -> None:
+    # "Eth" is explicit for Cisco but only a prefix of two long names for Huawei.
+    assert normalize_interface("Eth1", "huawei_vrp") == "Eth1"
+
+
+def test_same_interface_abbreviations() -> None:
+    assert same_interface("Gig 0/1", "Gi0/1")
+    assert same_interface("Ten1/1/1", "TenGigabitEthernet1/1/1")
+    assert same_interface("Fas0/1", "FastEthernet0/1")
+    assert same_interface("Fo1/0/1", "FortyGigE1/0/1")
+    assert same_interface("FortyGigabitEthernet1/0/1", "FortyGigE1/0/1")
+    assert not same_interface("Gig 0/1", "Gi0/2")
+
+
+def test_non_string_raises_type_error() -> None:
+    for fn in (normalize_interface, interface_aliases):
+        with pytest.raises(TypeError):
+            fn(None)  # type: ignore[operator]
+    with pytest.raises(TypeError):
+        same_interface(1, "Gi0")  # type: ignore[arg-type]

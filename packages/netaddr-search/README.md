@@ -41,3 +41,23 @@ same_interface("GE0/0/1", "GigabitEthernet0/0/1", "huawei_vrp")  # True
 Pure standard library, no runtime dependencies. Interface names are normalized within a vendor
 family (`cisco_ios`, `cisco_xr`, `huawei_vrp`, `mikrotik_ros7`, `juniper_junos`, `nokia_sros`,
 `ipinfusion_ocnos`); names are never mapped across vendors.
+
+## Behaviour notes
+
+- **IP versions**: networks of different versions are always `Relation.DISJOINT`; IPv4-mapped
+  IPv6 (`::ffff:192.0.2.1`) does not match IPv4 rows.
+- **SQL**: `SQL_INSIDE`, `SQL_COVERING` and `SQL_OVERLAPS` assume columns named `version`,
+  `start` and `end`. For other names use `sql_fragments(prefix)`, e.g.
+  `sql_fragments("ip_")["inside"]` uses `ip_version`, `ip_start`, `ip_end`.
+- **Default routes and ACL "any"**: `find_ips` and `parse_network` read `0.0.0.0 0.0.0.0` as
+  `0.0.0.0/0` (mask) and `0.0.0.0 255.255.255.255` as `0.0.0.0/0` (wildcard); after a non-zero
+  address `255.255.255.255` is a /32 mask and `0.0.0.0` a /32 wildcard.
+- **Version numbers**: a four-part version (`7.16.1.0`) looks like an IPv4 address and is
+  returned. Use `find_ips(text, skip_after=("version", "build", "release"))` to drop matches
+  that follow those words on the same line.
+- **IPv6**: a bare `::` is not matched; `::/0`, `::/128` and `::1` are.
+- **Interfaces**: types may be abbreviated to any unique prefix of at least 2 characters
+  (`Gig 0/1`, `Ten1/1/1`, `Fas0/1`). On `cisco_ios`, `Fo` is `FortyGigabitEthernet`
+  (`FortyGigE` on `cisco_xr`).
+- **Errors**: `parse_network`, `normalize_mac` and `normalize_interface` raise `TypeError` for
+  non-`str` input.

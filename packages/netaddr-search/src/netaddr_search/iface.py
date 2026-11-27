@@ -26,9 +26,6 @@ _CISCO_COMMON = {
     "gigabitethernet": "GigabitEthernet",
     "twe": "TwentyFiveGigE",
     "twentyfivegige": "TwentyFiveGigE",
-    "fo": "FortyGigE",
-    "fortygige": "FortyGigE",
-    "fortygigabitethernet": "FortyGigE",
     "hu": "HundredGigE",
     "hundredgige": "HundredGigE",
     "fa": "FastEthernet",
@@ -53,18 +50,24 @@ _CISCO_COMMON = {
 }
 _CISCO_IOS = {
     **_CISCO_COMMON,
+    "fo": "FortyGigabitEthernet",
+    "fortygigabitethernet": "FortyGigabitEthernet",
+    "fortygige": "FortyGigabitEthernet",
     "te": "TenGigabitEthernet",
     "tengigabitethernet": "TenGigabitEthernet",
     "tengige": "TenGigabitEthernet",
 }
 _CISCO_XR = {
     **_CISCO_COMMON,
+    "fo": "FortyGigE",
+    "fortygige": "FortyGigE",
+    "fortygigabitethernet": "FortyGigE",
     "te": "TenGigE",
     "tengige": "TenGigE",
     "tengigabitethernet": "TenGigE",
 }
-# Family unknown (IOS vs XR): IOS spellings, except the XR-only long name TenGigE.
-_CISCO_ANY = {**_CISCO_IOS, "tengige": "TenGigE"}
+# Family unknown (IOS vs XR): IOS spellings, except the XR-only long names TenGigE/FortyGigE.
+_CISCO_ANY = {**_CISCO_IOS, "tengige": "TenGigE", "fortygige": "FortyGigE"}
 
 _HUAWEI = {
     "ge": "GigabitEthernet",
@@ -90,6 +93,7 @@ _SHORT = {
     "TenGigE": "Te",
     "TwentyFiveGigE": "Twe",
     "FortyGigE": "Fo",
+    "FortyGigabitEthernet": "Fo",
     "HundredGigE": "Hu",
     "FastEthernet": "Fa",
     "Ethernet": "Eth",
@@ -118,6 +122,19 @@ _SROS_RE = re.compile(r"(?:\d+/\d+/(?:c\d+/)?\d+|esat-\d\S*|lag-\d+|system)", re
 _OCNOS_RE = re.compile(r"(?:(?:xe|ge)\d+(?:\.\d+)?|lo)", re.IGNORECASE)
 
 
+def _lookup(table: dict[str, str], t: str) -> str | None:
+    """Canonical name for type spelling ``t`` (lowercase): explicit spelling first, then any
+    unique prefix (at least 2 characters) of a long type name of the family."""
+    hit = table.get(t)
+    if hit is not None or len(t) < 2:
+        return hit
+    spellings = {v.lower() for v in table.values()} | {k for k in table if len(k) > 4}
+    if table is _CISCO_ANY:  # unknown family: prefer the IOS long names
+        spellings -= {"tengige", "fortygige"}
+    found = {table[x] for x in spellings if x.startswith(t)}
+    return found.pop() if len(found) == 1 else None
+
+
 def _split(name: str) -> tuple[str, str] | None:
     m = _NAME_RE.fullmatch(name)
     if m is None:
@@ -144,7 +161,7 @@ def _infer(name: str) -> str | None:
         return "nokia_sros"
     if _OCNOS_RE.fullmatch(name):
         return "ipinfusion_ocnos"
-    if parts is not None and parts[0].lower() in _CISCO_ANY:
+    if parts is not None and _lookup(_CISCO_ANY, parts[0].lower()) is not None:
         return "cisco_ios"
     return None
 
@@ -160,6 +177,8 @@ def _table(vendor: str, inferred: bool) -> dict[str, str] | None:
 
 
 def _resolve(name: str, vendor: str | None) -> tuple[str, str | None]:
+    if not isinstance(name, str):
+        raise TypeError(f"interface name must be str, not {type(name).__name__}")
     name = name.strip()
     if vendor is not None and vendor not in VENDORS:
         raise ValueError(f"unknown vendor: {vendor!r}")
@@ -173,6 +192,11 @@ def normalize_interface(name: str, vendor: str | None = None) -> str:
     where unambiguous (``Gi0/0/1`` -> Cisco, ``GE0/0/1`` -> Huawei). Unknown names are returned
     stripped but otherwise unchanged. Junos and OcNOS names are lowercased; RouterOS and SR OS
     names are kept as written.
+
+    The type may be abbreviated to any unique prefix of at least 2 characters (``Gig0/1``,
+    ``Ten1/1/1``, ``Fas0/1``) and may be separated from the number by a space (``Gig 0/1``).
+    For ``cisco_ios`` the 40G type is ``FortyGigabitEthernet``; ``cisco_xr`` uses ``FortyGigE``.
+    Raises ``TypeError`` if ``name`` is not a ``str`` and ``ValueError`` for an unknown vendor.
     """
     name, fam = _resolve(name, vendor)
     if fam is None:
@@ -185,7 +209,7 @@ def normalize_interface(name: str, vendor: str | None = None) -> str:
     parts = _split(name)
     if parts is None:
         return name
-    canon = table.get(parts[0].lower())
+    canon = _lookup(table, parts[0].lower())
     if canon is None:
         return name
     return canon + parts[1]
@@ -226,6 +250,11 @@ def _match_key(name: str, vendor: str | None) -> str:
     """Comparison key. Without a vendor, ``Te`` may be IOS ``TenGigabitEthernet`` or XR
     ``TenGigE``, so both long names fold to the same key."""
     key = normalize_interface(name, vendor).casefold()
-    if vendor is None and key.startswith("tengige") and not key.startswith("tengigabit"):
-        key = "tengigabitethernet" + key[len("tengige") :]
+    if vendor is None:
+        for short, long in (
+            ("tengige", "tengigabitethernet"),
+            ("fortygige", "fortygigabitethernet"),
+        ):
+            if key.startswith(short):
+                return long + key[len(short) :]
     return key

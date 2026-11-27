@@ -14,6 +14,7 @@ from netaddr_search.ip import (
     parse_network,
     query_params,
     relation,
+    sql_fragments,
 )
 from netaddr_search.mac import MacMatch, MacStyle, find_macs, format_mac, normalize_mac
 
@@ -42,4 +43,5 @@ __all__ = [
     "query_params",
     "relation",
     "same_interface",
+    "sql_fragments",
 ]
