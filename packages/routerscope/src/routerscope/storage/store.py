@@ -2,22 +2,41 @@
 
 Raw, unredacted content is never persisted: ``add_snapshot`` runs the (required) redactor first
 and everything stored or indexed, including the snapshot id, derives from the redacted text.
+
+Text handling: every ``str`` handed to the store is encoded as UTF-8 with
+``errors="replace"`` (a lone surrogate such as ``"\\ud800"`` becomes ``"?"``) before it is
+hashed, stored, indexed or searched, so such input never crashes and is treated the same
+everywhere. Bytes content is decoded the same way (undecodable bytes become U+FFFD).
+
+Thread safety: the connection is shared (``check_same_thread=False``) and every public
+operation holds one re-entrant lock, so a :class:`Store` may be used from several threads;
+operations are serialized, not parallel.
 """
 
 from __future__ import annotations
 
+import functools
 import re
 import sqlite3
+import threading
 from collections.abc import Callable, Iterator, Sequence
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
-from typing import Literal, Self
+from typing import Any, Concatenate, Literal, Self, get_args
+from urllib.parse import urlsplit
 
-from netaddr_search import normalize_interface, parse_network, query_params, sql_fragments
+from netaddr_search import (
+    normalize_interface,
+    normalize_mac,
+    parse_network,
+    query_params,
+    sql_fragments,
+)
 from netaddr_search.ip import Network, bounds
+from pydantic import ValidationError
 
 from routerscope.model import (
     ParsedConfig,
@@ -28,8 +47,11 @@ from routerscope.model import (
     make_snapshot,
     split_lines,
 )
+from routerscope.model._base import VENDOR_ID_PATTERN
 from routerscope.storage.errors import (
+    DatabaseBusyError,
     FtsUnavailableError,
+    InvalidInputError,
     QuerySyntaxError,
     UnknownSnapshotError,
     UnredactedDataError,
@@ -43,16 +65,37 @@ Redactor = Callable[[str, str | None], str]
 PrefixRelation = Literal["inside", "covering", "overlaps", "exact"]
 
 _TS_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-_URI_CREDENTIALS = re.compile(r"^([A-Za-z][A-Za-z0-9+.-]*://)[^/@\s]*@")
+_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*")
+_HOSTNAME = re.compile(r"[A-Za-z0-9_.:/@-]{1,255}")
+_VENDOR = re.compile(VENDOR_ID_PATTERN)
+_KINDS: tuple[str, ...] = get_args(SnapshotKind)
+_FTS_ERRORS = (
+    "fts5:",
+    "syntax error",
+    "unterminated string",
+    "no such column",
+    "unknown special query",
+    "malformed match",
+)
+_MIN_FTS_CHARS = 3  # trigram tokenizer minimum; shorter queries use the LIKE fallback
 
 
 @dataclass(frozen=True, slots=True)
 class Hit:
-    """One matching line: ``snapshot_id`` is the content hash, ``line_no`` is 1-based."""
+    """One matching line, with the latest observation of its content.
+
+    ``snapshot_id`` is the content hash, ``line_no`` is 1-based. ``hostname``, ``captured_at``,
+    ``kind`` and ``command`` come from the newest observation of that content that satisfies
+    the search filters (``hostname`` is None when unknown, ``command`` None when absent).
+    """
 
     snapshot_id: str
     line_no: int
     text: str
+    hostname: str | None
+    captured_at: datetime
+    kind: SnapshotKind
+    command: str | None
     matched: str | None = None
 
 
@@ -67,9 +110,14 @@ class DeviceSummary:
     last_seen: datetime
 
 
+def _clean(text: str) -> str:
+    """Make ``text`` encodable as UTF-8 (lone surrogates become ``?``)."""
+    return text.encode("utf-8", errors="replace").decode("utf-8")
+
+
 def _fmt_ts(value: datetime) -> str:
     if value.tzinfo is None:
-        raise ValueError("datetime must be timezone-aware")
+        raise InvalidInputError("datetime must be timezone-aware")
     return value.astimezone(UTC).strftime(_TS_FORMAT)
 
 
@@ -77,8 +125,74 @@ def _parse_ts(value: str) -> datetime:
     return datetime.strptime(value, _TS_FORMAT).replace(tzinfo=UTC)
 
 
+def _hostname(value: str) -> str:
+    """Trimmed, validated hostname (letters, digits and ``-_.:/@``; at most 255 chars)."""
+    host = value.strip()
+    if not host:
+        raise InvalidInputError("hostname must not be empty")
+    if not _HOSTNAME.fullmatch(host):
+        raise InvalidInputError(
+            "invalid hostname: use letters, digits and '-_.:/@' only (max 255 characters)"
+        )
+    return host
+
+
+def _vendor_id(value: str, what: str) -> str:
+    if not _VENDOR.fullmatch(value):
+        raise InvalidInputError(f"invalid {what} id: must match {VENDOR_ID_PATTERN}")
+    return value
+
+
+def _kind(value: str) -> str:
+    if value not in _KINDS:
+        raise InvalidInputError(f"invalid kind {value!r}; expected one of {_KINDS}")
+    return value
+
+
 def _strip_uri_credentials(uri: str) -> str:
-    return _URI_CREDENTIALS.sub(r"\1", uri)
+    r"""Drop userinfo, query and fragment from ``scheme://...`` URIs; keep anything else as is.
+
+    Userinfo may contain unescaped ``@`` and ``/``. When the authority looks like userinfo
+    (it has an ``@``, or ``name:text`` that is not ``host:port``) and an ``@`` occurs anywhere
+    after the scheme, everything up to the *last* ``@`` is dropped: secrecy wins over keeping a
+    path that happens to contain ``@``. Windows paths (``C:\logs\a.txt``) and other non-URL
+    strings are returned unchanged.
+    """
+    scheme, sep, rest = uri.partition("://")
+    if not sep or not _SCHEME.fullmatch(scheme):
+        return uri
+    netloc = re.split(r"[/?#]", rest, maxsplit=1)[0]
+    looks_like_userinfo = "@" in netloc or (
+        not netloc.startswith("[") and ":" in netloc and not netloc.rpartition(":")[2].isdigit()
+    )
+    if looks_like_userinfo and "@" in rest:
+        rest = rest[rest.rindex("@") + 1 :]
+    try:
+        parts = urlsplit(f"{scheme}://{rest}")
+    except ValueError:
+        return f"{scheme}://{re.split(r'[?#]', rest, maxsplit=1)[0]}"
+    return f"{scheme}://{parts.netloc.rpartition('@')[2]}{parts.path}"
+
+
+def _is_busy(exc: sqlite3.OperationalError) -> bool:
+    # sqlite_errorcode exists since Python 3.11; the low byte is the primary result code.
+    return (exc.sqlite_errorcode & 0xFF) in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
+
+
+def _serialized[S, **P, R](fn: Callable[Concatenate[S, P], R]) -> Callable[Concatenate[S, P], R]:
+    """Run a Store method under the store lock; map busy/locked errors to DatabaseBusyError."""
+
+    @functools.wraps(fn)
+    def wrapper(self: S, *args: P.args, **kwargs: P.kwargs) -> R:
+        with self._lock:  # type: ignore[attr-defined]
+            try:
+                return fn(self, *args, **kwargs)
+            except sqlite3.OperationalError as exc:
+                if _is_busy(exc):
+                    raise DatabaseBusyError(f"database is busy: {exc}") from exc
+                raise
+
+    return wrapper  # type: ignore[return-value]
 
 
 def check_fts5(conn: sqlite3.Connection) -> None:
@@ -98,37 +212,83 @@ def quote_fts_literal(text: str) -> str:
     return '"' + text.replace('"', '""') + '"'
 
 
+def _like_pattern(text: str) -> str:
+    escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+class _Filter:
+    """Observation filters shared by every search: which observation represents a content."""
+
+    def __init__(self, hostname: str | None, kind: str | None, latest_only: bool) -> None:
+        self.params: dict[str, object] = {}
+        sql = ""
+        if hostname is not None:
+            sql += " AND o2.hostname = :f_host"
+            self.params["f_host"] = _hostname(hostname)
+        if kind is not None:
+            sql += " AND o2.kind = :f_kind"
+            self.params["f_kind"] = _kind(kind)
+        if latest_only:
+            # Newest observation per (hostname, kind, command). Observations without a
+            # hostname cannot be grouped, so they are never treated as superseded.
+            sql += (
+                " AND (o2.hostname = '' OR NOT EXISTS (SELECT 1 FROM observations n"
+                " WHERE n.hostname = o2.hostname AND n.kind = o2.kind"
+                " AND n.command = o2.command AND (n.captured_at > o2.captured_at"
+                " OR (n.captured_at = o2.captured_at AND n.id > o2.id))))"
+            )
+        self._sql = sql
+
+    def pick(self, content_id: str) -> str:
+        """SQL expression: id of the newest qualifying observation of ``content_id``."""
+        return (
+            "(SELECT o2.id FROM observations o2 WHERE o2.content_id = "
+            f"{content_id}{self._sql} ORDER BY o2.captured_at DESC, o2.id DESC LIMIT 1)"
+        )
+
+
+_HIT_COLUMNS = "l.text, o.hostname, o.captured_at, o.kind, o.command"
+
+
 class Store:
-    """A routerscope database. Use :meth:`open`; not thread-safe (one connection)."""
+    """A routerscope database. Use :meth:`open`. Thread-safe: operations are serialized."""
 
     def __init__(self, conn: sqlite3.Connection, redactor: Redactor) -> None:
         self._conn = conn
         self._redactor = redactor
+        self._lock = threading.RLock()
 
     # ------------------------------------------------------------------ lifecycle
 
     @classmethod
-    def open(cls, path: str | Path, *, redactor: Redactor) -> Self:
+    def open(cls, path: str | Path, *, redactor: Redactor, timeout: float = 30.0) -> Self:
         """Open (creating and migrating if needed) the database at ``path``.
 
         ``redactor`` is required: there is deliberately no default, so nothing can be stored
-        unredacted by omission. ``":memory:"`` gives a throwaway database.
+        unredacted by omission. ``":memory:"`` gives a throwaway database. ``timeout`` is how
+        long to wait for another connection's lock before :class:`DatabaseBusyError`.
         """
-        conn = sqlite3.connect(str(path), isolation_level=None, timeout=30.0)
+        conn = sqlite3.connect(
+            str(path), isolation_level=None, timeout=timeout, check_same_thread=False
+        )
         try:
             conn.execute("PRAGMA foreign_keys = ON")
             conn.execute("PRAGMA journal_mode = WAL")
             conn.execute("PRAGMA synchronous = NORMAL")
             check_fts5(conn)
             migrate(conn)
-        except BaseException:
+        except BaseException as exc:
             conn.close()
+            if isinstance(exc, sqlite3.OperationalError) and _is_busy(exc):
+                raise DatabaseBusyError(f"database is busy: {exc}") from exc
             raise
         return cls(conn, redactor)
 
     def close(self) -> None:
         """Close the connection (idempotent)."""
-        self._conn.close()
+        with self._lock:
+            self._conn.close()
 
     def __enter__(self) -> Self:
         return self
@@ -142,22 +302,42 @@ class Store:
         self.close()
 
     @property
+    @_serialized
     def schema_version(self) -> int:
         """The ``user_version`` of the open database."""
         return schema_version(self._conn)
 
     @contextmanager
     def _tx(self) -> Iterator[sqlite3.Connection]:
-        self._conn.execute("BEGIN IMMEDIATE")
+        conn = self._conn
+        conn.execute("BEGIN IMMEDIATE")
         try:
-            yield self._conn
+            yield conn
+            conn.execute("COMMIT")
         except BaseException:
-            self._conn.execute("ROLLBACK")
+            # SQLite may already have rolled back (e.g. after some errors); never let a
+            # failing ROLLBACK hide the original exception.
+            if conn.in_transaction:
+                with suppress(sqlite3.Error):
+                    conn.execute("ROLLBACK")
             raise
-        self._conn.execute("COMMIT")
 
     # ------------------------------------------------------------------ writing
 
+    def _clean_source(self, source: Source) -> Source:
+        return source.model_copy(
+            update={
+                "uri": self._redactor(_strip_uri_credentials(_clean(source.uri)), None),
+                "importer": self._redactor(_clean(source.importer), None),
+                "git_commit": (
+                    None
+                    if source.git_commit is None
+                    else self._redactor(_clean(source.git_commit), None)
+                ),
+            }
+        )
+
+    @_serialized
     def add_snapshot(
         self,
         content: str | bytes,
@@ -172,39 +352,47 @@ class Store:
         """Redact, store and index ``content``; return the resulting :class:`Snapshot`.
 
         The snapshot id is the sha256 of the *redacted* text. Identical redacted content is
-        stored and indexed once; seeing it again (other host, time or source) only adds an
-        observation, and re-adding the very same observation is a no-op. Credentials embedded
-        in ``source.uri`` (``scheme://user:pass@host``) are dropped and ``command`` goes
-        through the redactor too. Everything happens in one transaction.
+        stored and indexed once; seeing it again (other host, time, vendor or source) only adds
+        an observation, and re-adding the very same observation is a no-op. ``hostname`` is
+        trimmed (blank means unknown) and validated (letters, digits, ``-_.:/@``, at most 255
+        characters) and ``vendor`` must be a vendor id (``^[a-z][a-z0-9_]*$``), otherwise
+        :class:`InvalidInputError` is raised. Credentials embedded in ``source.uri``
+        (``scheme://user:pass@host``) are dropped with the query and fragment; the URI,
+        ``source.importer``, ``source.git_commit`` and ``command`` also go through the
+        redactor. Everything happens in one transaction.
         """
-        raw = content if isinstance(content, str) else content.decode("utf-8", errors="replace")
-        text = self._redactor(raw, vendor)
+        host = _hostname(hostname) if hostname is not None and hostname.strip() else None
+        vendor_id = None if vendor is None else _vendor_id(vendor, "vendor")
+        raw = _clean(content) if isinstance(content, str) else content.decode("utf-8", "replace")
+        text = _clean(self._redactor(raw, vendor_id))
         del raw
-        clean_command = self._redactor(command, vendor) if command else None
-        clean_source = source.model_copy(update={"uri": _strip_uri_credentials(source.uri)})
-        snapshot = make_snapshot(
-            text,
-            source=clean_source,
-            kind=kind,
-            captured_at=captured_at,
-            hostname=hostname,
-            vendor=vendor,
-            command=clean_command,
-        )
+        clean_command = _clean(self._redactor(_clean(command), vendor_id)) if command else None
+        clean_source = self._clean_source(source)
+        _fmt_ts(captured_at)
+        try:
+            snapshot = make_snapshot(
+                text,
+                source=clean_source,
+                kind=kind,
+                captured_at=captured_at,
+                hostname=host,
+                vendor=vendor_id,
+                command=clean_command,
+            )
+        except ValidationError as exc:
+            raise InvalidInputError(f"invalid snapshot metadata: {exc}") from exc
         with self._tx() as conn:
             source_id = self._source_id(conn, clean_source)
-            if conn.execute("SELECT 1 FROM contents WHERE id = ?", (snapshot.id,)).fetchone():
-                pass
-            else:
-                self._insert_content(conn, snapshot, text, vendor)
+            if not conn.execute("SELECT 1 FROM contents WHERE id = ?", (snapshot.id,)).fetchone():
+                self._insert_content(conn, snapshot, text, vendor_id)
             conn.execute(
                 "INSERT OR IGNORE INTO observations"
                 " (content_id, hostname, vendor, kind, command, captured_at, source_id)"
                 " VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     snapshot.id,
-                    hostname or "",
-                    vendor,
+                    host or "",
+                    vendor_id or "",
                     kind,
                     clean_command or "",
                     _fmt_ts(snapshot.captured_at),
@@ -231,19 +419,22 @@ class Store:
         conn: sqlite3.Connection, snapshot: Snapshot, text: str, vendor: str | None
     ) -> None:
         lines = split_lines(text)
-        base = conn.execute(
-            "SELECT COALESCE(MAX(line_base + line_count), 1) FROM contents"
-        ).fetchone()[0]
+        cid = snapshot.id
         conn.execute(
-            "INSERT INTO contents (id, text, size, line_count, line_base) VALUES (?, ?, ?, ?, ?)",
-            (snapshot.id, text, snapshot.size, snapshot.line_count, base),
+            "INSERT INTO contents (id, text, size, line_count) VALUES (?, ?, ?, ?)",
+            (cid, text, snapshot.size, snapshot.line_count),
         )
         conn.executemany(
-            "INSERT INTO lines_fts (rowid, text) VALUES (?, ?)",
-            ((base + n, line) for n, line in enumerate(lines) if line.strip()),
+            "INSERT INTO lines (content_id, line_no, text) VALUES (?, ?, ?)",
+            ((cid, n, line) for n, line in enumerate(lines, 1)),
+        )
+        # External-content FTS5: index the rows just inserted (rowid = lines.id, never reused).
+        conn.execute(
+            "INSERT INTO lines_fts (rowid, text) SELECT id, text FROM lines"
+            " WHERE content_id = ? AND trim(text, char(9, 10, 13, 32)) <> ''",
+            (cid,),
         )
         rows = extract_rows(lines, vendor)
-        cid = snapshot.id
         conn.executemany(
             'INSERT INTO ip_addrs (content_id, line_no, version, start, "end", address,'
             " network, kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -267,13 +458,16 @@ class Store:
             ((cid, ln, raw, norm, norm.lower()) for ln, raw, norm in rows.interfaces),
         )
 
+    @_serialized
     def add_parsed(self, parsed: ParsedConfig | ParseResult, *, plugin: str) -> None:
         """Store (or replace) parser output for a stored snapshot and plugin id.
 
-        Parsers must run on the stored (redacted) text from :meth:`get_content`. As a second
-        line of defence the JSON is passed through the redactor and refused with
-        :class:`UnredactedDataError` if the redactor would change it.
+        ``plugin`` must be a vendor-style id (``^[a-z][a-z0-9_]*$``). Parsers must run on the
+        stored (redacted) text from :meth:`get_content`. As a second line of defence the JSON
+        is passed through the redactor and refused with :class:`UnredactedDataError` if the
+        redactor would change it.
         """
+        _vendor_id(plugin, "plugin")
         if not self._has_content(parsed.snapshot_id):
             raise UnknownSnapshotError(f"snapshot {parsed.snapshot_id[:12]} is not stored")
         data = parsed.model_dump_json()
@@ -306,6 +500,7 @@ class Store:
             is not None
         )
 
+    @_serialized
     def get_parsed_config(self, snapshot_id: str, plugin: str) -> ParsedConfig | None:
         """Parsed config stored by ``plugin`` for the snapshot, if any."""
         row = self._conn.execute(
@@ -314,6 +509,7 @@ class Store:
         ).fetchone()
         return None if row is None else ParsedConfig.model_validate_json(row[0])
 
+    @_serialized
     def get_parse_result(self, snapshot_id: str, plugin: str, command: str) -> ParseResult | None:
         """Command parse result stored by ``plugin`` for the snapshot, if any."""
         row = self._conn.execute(
@@ -323,6 +519,7 @@ class Store:
         ).fetchone()
         return None if row is None else ParseResult.model_validate_json(row[0])
 
+    @_serialized
     def get_content(self, snapshot_id: str) -> str | None:
         """The stored (redacted) text of a snapshot, or None."""
         row = self._conn.execute(
@@ -330,12 +527,20 @@ class Store:
         ).fetchone()
         return None if row is None else str(row[0])
 
+    @_serialized
     def get_lines(self, snapshot_id: str, first: int, last: int) -> list[str]:
-        """Lines ``first``..``last`` (1-based, inclusive) of a snapshot; [] if unknown."""
-        text = self.get_content(snapshot_id)
-        if text is None or first > last:
+        """Lines ``first``..``last`` (1-based, inclusive) of a snapshot; [] if unknown.
+
+        Served from the ``lines`` table; the whole content is not loaded or re-split.
+        """
+        if first > last:
             return []
-        return split_lines(text)[max(first, 1) - 1 : last]
+        rows = self._conn.execute(
+            "SELECT text FROM lines WHERE content_id = ? AND line_no BETWEEN ? AND ?"
+            " ORDER BY line_no",
+            (snapshot_id, max(first, 1), last),
+        ).fetchall()
+        return [str(r[0]) for r in rows]
 
     _SNAPSHOT_SELECT = (
         "SELECT id, hostname, vendor, kind, command, captured_at, source_kind, source_uri,"
@@ -347,7 +552,7 @@ class Store:
         return Snapshot(
             id=str(row[0]),
             hostname=str(row[1]) or None,
-            vendor=None if row[2] is None else str(row[2]),
+            vendor=str(row[2]) or None,
             kind=row[3],  # type: ignore[arg-type]
             command=str(row[4]) or None,
             captured_at=_parse_ts(str(row[5])),
@@ -361,6 +566,7 @@ class Store:
             line_count=int(row[11]),  # type: ignore[call-overload]
         )
 
+    @_serialized
     def get_snapshot(self, snapshot_id: str) -> Snapshot | None:
         """The most recent observation of a snapshot id, or None."""
         row = self._conn.execute(
@@ -370,6 +576,7 @@ class Store:
         ).fetchone()
         return None if row is None else self._to_snapshot(row)
 
+    @_serialized
     def observations(self, snapshot_id: str) -> list[Snapshot]:
         """Every observation of a snapshot id, oldest first."""
         rows = self._conn.execute(
@@ -383,21 +590,23 @@ class Store:
         hostname: str, kind: SnapshotKind | None, command: str | None
     ) -> tuple[str, list[object]]:
         sql = " WHERE hostname = ?"
-        params: list[object] = [hostname]
+        params: list[object] = [_hostname(hostname)]
         if kind is not None:
             sql += " AND kind = ?"
-            params.append(kind)
+            params.append(_kind(kind))
         if command is not None:
             sql += " AND command = ?"
-            params.append(command)
+            params.append(_clean(command))
         return sql, params
 
+    @_serialized
     def history(
         self, hostname: str, kind: SnapshotKind | None = None, command: str | None = None
     ) -> list[Snapshot]:
         """Observations of a device ordered by capture time (oldest first).
 
-        ``hostname`` matches case-insensitively; ``kind`` and ``command`` filter when given.
+        ``hostname`` is trimmed and matches case-insensitively (an empty one raises
+        :class:`InvalidInputError`); ``kind`` and ``command`` filter when given.
         """
         where, params = self._history_filter(hostname, kind, command)
         rows = self._conn.execute(
@@ -405,6 +614,7 @@ class Store:
         ).fetchall()
         return [self._to_snapshot(r) for r in rows]
 
+    @_serialized
     def snapshot_at(
         self,
         hostname: str,
@@ -421,12 +631,13 @@ class Store:
         ).fetchone()
         return None if row is None else self._to_snapshot(row)
 
+    @_serialized
     def devices(self) -> list[DeviceSummary]:
         """Every hostname seen, with its latest known vendor and observation span."""
         rows = self._conn.execute(
             "SELECT hostname, COUNT(*), MIN(captured_at), MAX(captured_at),"
             " (SELECT s2.vendor FROM snapshots s2 WHERE s2.hostname = s.hostname"
-            "  AND s2.vendor IS NOT NULL ORDER BY s2.captured_at DESC LIMIT 1)"
+            "  AND s2.vendor <> '' ORDER BY s2.captured_at DESC LIMIT 1)"
             " FROM snapshots s WHERE hostname <> '' GROUP BY hostname ORDER BY hostname"
         ).fetchall()
         return [
@@ -445,141 +656,221 @@ class Store:
     @staticmethod
     def _check_limit(limit: int) -> None:
         if limit < 1:
-            raise ValueError("limit must be >= 1")
+            raise InvalidInputError("limit must be >= 1")
 
-    def _hits(self, rows: Sequence[Sequence[object]]) -> list[Hit]:
-        """Attach line text to ``(content_id, line_no, matched)`` rows."""
-        cache: dict[str, list[str]] = {}
-        out: list[Hit] = []
-        for content_id, line_no, matched in rows:
-            cid = str(content_id)
-            if cid not in cache:
-                cache[cid] = split_lines(self.get_content(cid) or "")
-            lines = cache[cid]
-            n = int(line_no)  # type: ignore[call-overload]
-            out.append(
-                Hit(
-                    cid,
-                    n,
-                    lines[n - 1] if 0 < n <= len(lines) else "",
-                    None if matched is None else str(matched),
-                )
+    @staticmethod
+    def _to_hits(rows: Sequence[Sequence[object]]) -> list[Hit]:
+        """Rows are ``(content_id, line_no, matched, text, hostname, captured_at, kind, cmd)``."""
+        return [
+            Hit(
+                snapshot_id=str(r[0]),
+                line_no=int(r[1]),  # type: ignore[call-overload]
+                text=str(r[3]),
+                hostname=str(r[4]) or None,
+                captured_at=_parse_ts(str(r[5])),
+                kind=r[6],  # type: ignore[arg-type]
+                command=str(r[7]) or None,
+                matched=None if r[2] is None else str(r[2]),
             )
-        return out
+            for r in rows
+        ]
 
-    def search_text(self, query: str, *, limit: int = 100, literal: bool = False) -> list[Hit]:
+    @_serialized
+    def search_text(
+        self,
+        query: str,
+        *,
+        limit: int = 100,
+        literal: bool = False,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
+    ) -> list[Hit]:
         """Full-text search over lines, best matches first.
 
         ``query`` is FTS5 syntax (``AND``/``OR``/``NOT``, ``"phrases"``); with ``literal=True``
         it is searched as one phrase (use this for pasted text such as ``route-policy`` or
-        ``GigabitEthernet0/0/1``). The trigram tokenizer needs terms of 3+ characters.
-        Raises :class:`QuerySyntaxError` for an empty or malformed query.
+        ``GigabitEthernet0/0/1``). The trigram tokenizer needs 3+ characters, so a query of
+        fewer than 3 characters (after trimming) is searched as a plain, case-insensitive
+        (ASCII) substring with ``LIKE`` over the line text instead: it scans lines newest
+        ingested first and stops at ``limit``, so it is bounded but not index-assisted, and it
+        ignores FTS syntax and ``literal``.
+
+        ``hostname`` and ``kind`` keep only contents with a matching observation;
+        ``latest_only`` keeps only contents that are the newest observation of their
+        ``(hostname, kind, command)``. Observations without a hostname are never superseded.
+        Each hit reports the newest observation satisfying the filters.
+
+        Raises :class:`QuerySyntaxError` for an empty or malformed FTS query; any other
+        database error propagates unchanged.
         """
         self._check_limit(limit)
-        if not query.strip():
+        text = _clean(query).strip()
+        if not text:
             raise QuerySyntaxError("empty search query")
-        match = quote_fts_literal(query) if literal else query
+        flt = _Filter(hostname, kind, latest_only)
+        params: dict[str, object] = {**flt.params, "limit": limit}
+        if len(text) < _MIN_FTS_CHARS:
+            params["q"] = _like_pattern(text)
+            sql = (
+                f"SELECT l.content_id, l.line_no, NULL, {_HIT_COLUMNS} FROM lines l"
+                f" JOIN observations o ON o.id = {flt.pick('l.content_id')}"
+                " WHERE l.text LIKE :q ESCAPE '\\' ORDER BY l.id DESC LIMIT :limit"
+            )
+        else:
+            params["q"] = quote_fts_literal(text) if literal else text
+            sql = (
+                f"SELECT l.content_id, l.line_no, NULL, {_HIT_COLUMNS} FROM lines_fts f"
+                " JOIN lines l ON l.id = f.rowid"
+                f" JOIN observations o ON o.id = {flt.pick('l.content_id')}"
+                " WHERE lines_fts MATCH :q ORDER BY f.rank LIMIT :limit"
+            )
         try:
-            rows = self._conn.execute(
-                "SELECT (SELECT c.id FROM contents c WHERE c.line_count > 0"
-                "   AND c.line_base <= f.rowid ORDER BY c.line_base DESC LIMIT 1),"
-                " f.rowid, NULL FROM lines_fts f WHERE lines_fts MATCH ? ORDER BY f.rank LIMIT ?",
-                (match, limit),
-            ).fetchall()
+            rows = self._conn.execute(sql, params).fetchall()
         except sqlite3.OperationalError as exc:
-            raise QuerySyntaxError(f"invalid search query {query!r}: {exc}") from exc
-        resolved: list[tuple[str, int, None]] = []
-        for content_id, rowid, _ in rows:
-            base = self._conn.execute(
-                "SELECT line_base FROM contents WHERE id = ?", (content_id,)
-            ).fetchone()[0]
-            resolved.append((content_id, rowid - base + 1, None))
-        return self._hits(resolved)
+            message = str(exc).lower()
+            if any(marker in message for marker in _FTS_ERRORS):
+                raise QuerySyntaxError(f"invalid search query {query!r}: {exc}") from exc
+            raise
+        return self._to_hits(rows)
 
+    def _typed(
+        self,
+        table: str,
+        matched: str,
+        where: str,
+        params: dict[str, Any],
+        limit: int,
+        flt: _Filter,
+    ) -> list[Hit]:
+        """Hits from a side table, most recent observation first, then line number."""
+        sql = (
+            f"SELECT x.content_id, x.line_no, x.{matched}, {_HIT_COLUMNS} FROM {table} x"
+            f" JOIN observations o ON o.id = {flt.pick('x.content_id')}"
+            " JOIN lines l ON l.content_id = x.content_id AND l.line_no = x.line_no"
+            f" WHERE {where} ORDER BY o.captured_at DESC, o.id DESC, x.line_no LIMIT :limit"
+        )
+        rows = self._conn.execute(sql, {**params, **flt.params, "limit": limit}).fetchall()
+        return self._to_hits(rows)
+
+    @_serialized
     def find_prefix(
-        self, prefix: str | Network, relation: PrefixRelation = "inside", *, limit: int = 1000
+        self,
+        prefix: str | Network,
+        relation: PrefixRelation = "inside",
+        *,
+        limit: int = 1000,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
     ) -> list[Hit]:
         """Lines mentioning an address or prefix related to ``prefix``.
 
         ``inside``: rows within ``prefix`` (equal included); ``covering``: rows that contain
         it (``0.0.0.0/0`` included); ``overlaps``: either; ``exact``: the same range.
-        A bare address is a /32 or /128. ``matched`` is the row's network.
+        A bare address is a /32 or /128. ``matched`` is the row's network. Results are ordered
+        by most recent observation, then line number; see :meth:`search_text` for the filters.
         """
         self._check_limit(limit)
+        flt = _Filter(hostname, kind, latest_only)
         net = parse_network(prefix) if isinstance(prefix, str) else prefix
         if net is None:
-            raise ValueError(f"not an IP address or prefix: {prefix!r}")
+            raise InvalidInputError(f"not an IP address or prefix: {prefix!r}")
         if relation == "exact":
             version, start, end = bounds(net)
-            where = '"version" = :version AND "start" = :start AND "end" = :end'
+            where = 'x."version" = :version AND x."start" = :start AND x."end" = :end'
             params: dict[str, object] = {"version": version, "start": start, "end": end}
         else:
             fragments = sql_fragments("")
             if relation not in fragments:
-                raise ValueError(f"unknown relation: {relation!r}")
+                raise InvalidInputError(f"unknown relation: {relation!r}")
             where = fragments[relation]
             params = query_params(net)
-        params["limit"] = limit
-        rows = self._conn.execute(
-            f"SELECT content_id, line_no, network FROM ip_addrs WHERE {where}"
-            " ORDER BY content_id, line_no LIMIT :limit",
-            params,
-        ).fetchall()
-        return self._hits(rows)
+        return self._typed("ip_addrs", "network", where, params, limit, flt)
 
-    def _simple(self, sql: str, param: object, limit: int) -> list[Hit]:
-        self._check_limit(limit)
-        return self._hits(self._conn.execute(sql, (param, limit)).fetchall())
-
-    def find_mac(self, mac: str, *, limit: int = 1000) -> list[Hit]:
+    @_serialized
+    def find_mac(
+        self,
+        mac: str,
+        *,
+        limit: int = 1000,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
+    ) -> list[Hit]:
         """Lines mentioning a MAC address, in any notation (``aabb.cc00.1122``, ``aa-bb-...``)."""
-        from netaddr_search import normalize_mac
-
+        self._check_limit(limit)
+        flt = _Filter(hostname, kind, latest_only)
         norm = normalize_mac(mac)
         if norm is None:
-            raise ValueError(f"not a MAC address: {mac!r}")
-        return self._simple(
-            "SELECT content_id, line_no, mac FROM macs WHERE mac = ?"
-            " ORDER BY content_id, line_no LIMIT ?",
-            norm,
-            limit,
-        )
+            raise InvalidInputError(f"not a MAC address: {mac!r}")
+        return self._typed("macs", "mac", "x.mac = :value", {"value": norm}, limit, flt)
 
-    def find_asn(self, asn: int | str, *, limit: int = 1000) -> list[Hit]:
+    @_serialized
+    def find_asn(
+        self,
+        asn: int | str,
+        *,
+        limit: int = 1000,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
+    ) -> list[Hit]:
         """Lines where an AS number appears in a BGP context (``AS65536`` or ``65536``)."""
+        self._check_limit(limit)
+        flt = _Filter(hostname, kind, latest_only)
         text = str(asn).strip()
         if text[:2].upper() == "AS":
             text = text[2:]
         if not text.isdigit() or not 1 <= int(text) <= 4294967295:
-            raise ValueError(f"not an AS number: {asn!r}")
-        return self._simple(
-            "SELECT content_id, line_no, context FROM asns WHERE asn = ?"
-            " ORDER BY content_id, line_no LIMIT ?",
-            int(text),
-            limit,
-        )
+            raise InvalidInputError(f"not an AS number: {asn!r}")
+        return self._typed("asns", "context", "x.asn = :value", {"value": int(text)}, limit, flt)
 
-    def find_community(self, community: str, *, limit: int = 1000) -> list[Hit]:
+    @_serialized
+    def find_community(
+        self,
+        community: str,
+        *,
+        limit: int = 1000,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
+    ) -> list[Hit]:
         """Lines with a BGP community (``64496:100``, ``64496:1:2`` or ``no-export``)."""
-        return self._simple(
-            "SELECT content_id, line_no, community FROM communities WHERE community = ?"
-            " ORDER BY content_id, line_no LIMIT ?",
-            community.strip().lower(),
-            limit,
+        self._check_limit(limit)
+        flt = _Filter(hostname, kind, latest_only)
+        value = _clean(community).strip().lower()
+        return self._typed(
+            "communities", "community", "x.community = :value", {"value": value}, limit, flt
         )
 
+    @_serialized
     def find_interface(
-        self, name: str, vendor: str | None = None, *, limit: int = 1000
+        self,
+        name: str,
+        vendor: str | None = None,
+        *,
+        limit: int = 1000,
+        hostname: str | None = None,
+        kind: SnapshotKind | None = None,
+        latest_only: bool = False,
     ) -> list[Hit]:
         """Lines naming an interface, matching short/long forms (``Gi0/0/1`` finds
         ``GigabitEthernet0/0/1``) within the vendor family and ignoring case."""
+        self._check_limit(limit)
+        flt = _Filter(hostname, kind, latest_only)
+        clean_name = _clean(name).strip()
+        if not clean_name:
+            raise InvalidInputError("interface name must not be empty")
         try:
-            norm = normalize_interface(name, vendor)
+            norm = normalize_interface(clean_name, vendor)
         except ValueError:  # vendor id unknown to netaddr-search (third-party plugin)
-            norm = normalize_interface(name)
-        return self._simple(
-            "SELECT content_id, line_no, normalized FROM interfaces WHERE norm_key = ?"
-            " ORDER BY content_id, line_no LIMIT ?",
-            norm.lower(),
+            norm = normalize_interface(clean_name)
+        return self._typed(
+            "interfaces",
+            "normalized",
+            "x.norm_key = :value",
+            {"value": norm.lower()},
             limit,
+            flt,
         )

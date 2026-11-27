@@ -29,3 +29,14 @@ class UnknownSnapshotError(StorageError):
 
 class UnredactedDataError(StorageError):
     """Data handed to the store still contains something the redactor would remove."""
+
+
+class InvalidInputError(StorageError, ValueError):
+    """A caller-supplied value is unusable (bad hostname, vendor id, limit, filter, ...).
+
+    Also a :class:`ValueError`, so callers may catch either.
+    """
+
+
+class DatabaseBusyError(StorageError):
+    """The database stayed locked by another connection longer than the busy timeout."""

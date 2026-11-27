@@ -15,24 +15,34 @@ CREATE TABLE contents (
     id         TEXT PRIMARY KEY CHECK (length(id) = 64),
     text       TEXT NOT NULL,
     size       INTEGER NOT NULL,
-    line_count INTEGER NOT NULL,
-    line_base  INTEGER NOT NULL                -- FTS rowid of line 1 (line n is base + n - 1)
+    line_count INTEGER NOT NULL
 );
-CREATE INDEX ix_contents_base ON contents (line_base) WHERE line_count > 0;
+
+-- Every line of every content (redacted), numbered like routerscope.model.split_lines.
+-- id is the FTS rowid. AUTOINCREMENT guarantees an id is never reused, even if rows were ever
+-- deleted (contents are never deleted today, see docs/storage.md).
+CREATE TABLE lines (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    content_id TEXT NOT NULL REFERENCES contents (id),
+    line_no    INTEGER NOT NULL,
+    text       TEXT NOT NULL,
+    UNIQUE (content_id, line_no)
+);
 
 -- One row per time the content was seen. Identical content seen again adds a row here only.
 CREATE TABLE observations (
     id          INTEGER PRIMARY KEY,
     content_id  TEXT NOT NULL REFERENCES contents (id),
     hostname    TEXT NOT NULL DEFAULT '' COLLATE NOCASE,   -- '' means "unknown"
-    vendor      TEXT,
+    vendor      TEXT NOT NULL DEFAULT '',                  -- '' means "unknown"
     kind        TEXT NOT NULL CHECK (kind IN ('config', 'command_output', 'session')),
     command     TEXT NOT NULL DEFAULT '',                  -- '' means "none"
     captured_at TEXT NOT NULL,                             -- UTC, fixed-width ISO 8601
     source_id   INTEGER NOT NULL REFERENCES sources (id)
 );
 CREATE UNIQUE INDEX ux_observations
-    ON observations (content_id, hostname, kind, command, captured_at, source_id);
+    ON observations (content_id, hostname, vendor, kind, command, captured_at, source_id);
+CREATE INDEX ix_observations_content ON observations (content_id, captured_at);
 CREATE INDEX ix_observations_history ON observations (hostname, kind, command, captured_at);
 
 -- Mirrors the Snapshot model: one row per observation.
@@ -45,10 +55,10 @@ FROM observations o
 JOIN contents c ON c.id = o.content_id
 JOIN sources s ON s.id = o.source_id;
 
--- Contentless FTS5 over lines; rowid = contents.line_base + line_no - 1. Blank lines are skipped.
+-- External-content FTS5 over lines.text (rowid = lines.id). Blank lines are not indexed.
 -- Trigram tokenizer: case-insensitive substring search for any term of 3+ characters.
 CREATE VIRTUAL TABLE lines_fts USING fts5 (
-    text, content = '', tokenize = 'trigram case_sensitive 0'
+    text, content = 'lines', content_rowid = 'id', tokenize = 'trigram case_sensitive 0'
 );
 
 CREATE TABLE ip_addrs (
