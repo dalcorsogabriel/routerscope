@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import sqlite3
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -22,8 +23,20 @@ from routerscope.storage.store import check_fts5
 MOD = importlib.import_module("routerscope.storage.migrate")
 
 
-def _conn() -> sqlite3.Connection:
-    return sqlite3.connect(":memory:", isolation_level=None)
+_OPEN: list[sqlite3.Connection] = []
+
+
+def _conn(path: str | Path = ":memory:") -> sqlite3.Connection:
+    conn = sqlite3.connect(path, isolation_level=None)
+    _OPEN.append(conn)
+    return conn
+
+
+@pytest.fixture(autouse=True)
+def _close_connections() -> Iterator[None]:
+    yield
+    while _OPEN:
+        _OPEN.pop().close()
 
 
 def test_packaged_migrations_are_contiguous() -> None:
@@ -67,7 +80,7 @@ def test_each_older_version_upgrades_and_keeps_data(start: int) -> None:
 
 def test_real_v1_database_is_upgraded_by_later_migration(tmp_path: Path) -> None:
     path = tmp_path / "old.db"
-    conn = sqlite3.connect(path, isolation_level=None)
+    conn = _conn(path)
     migrate(conn)
     version = schema_version(conn)
     conn.execute("INSERT INTO sources (kind, uri, importer) VALUES ('paste', 'u', 'i')")
