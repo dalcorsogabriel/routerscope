@@ -1,0 +1,28 @@
+name: Fixture contribution
+description: Offer a sanitized config or command output for a vendor/version not yet covered.
+labels: ["fixture"]
+body:
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor / platform / OS version
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command or config section
+    validations:
+      required: true
+  - type: checkboxes
+    id: sanitized
+    attributes:
+      label: Sanitization
+      options:
+        - label: I removed or replaced public IPs, hostnames, third-party ASNs, passwords, keys and SNMP communities
+          required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample
+      render: text

@@ -1,0 +1,29 @@
+name: New vendor / platform
+description: Request or propose support for a new vendor, platform or OS family.
+labels: ["new-vendor", "help wanted"]
+body:
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor and platform
+      placeholder: "Extreme SLX-OS, Arista EOS, VyOS..."
+    validations:
+      required: true
+  - type: textarea
+    id: prompts
+    attributes:
+      label: Prompt examples
+      description: Exec-mode and config-mode prompts (sanitized).
+      render: text
+  - type: input
+    id: paging
+    attributes:
+      label: How to disable paging for the current session only
+      placeholder: "terminal length 0"
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I can provide sanitized fixtures
+        - label: I want to implement the vendor plugin

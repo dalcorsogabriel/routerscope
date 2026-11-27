@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest a feature or improvement.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What slows you down today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+  - type: input
+    id: time
+    attributes:
+      label: Time saved
+      description: "Rough estimate: how many minutes per day or week would this save?"

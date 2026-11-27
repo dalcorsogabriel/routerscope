@@ -1,0 +1,20 @@
+name: Docs
+
+on:
+  pull_request:
+    paths: ["docs/**", "mkdocs.yml"]
+  push:
+    branches: [main]
+    paths: ["docs/**", "mkdocs.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked --only-group docs
+      - run: uv run --only-group docs mkdocs build --strict

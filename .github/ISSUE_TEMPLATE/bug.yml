@@ -1,0 +1,32 @@
+name: Bug report
+description: Something does not work as documented.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what you got.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: routerscope version
+      placeholder: "routerscope --version"
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, Linux, macOS]
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor / platform / OS version
+      placeholder: "Huawei NE8000, VRP V800R022"
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sanitized sample
+      description: A minimal input that reproduces it. Remove public IPs, hostnames and secrets first.
+      render: text

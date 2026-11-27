@@ -1,0 +1,29 @@
+name: New command parser
+description: Request or propose a parser for a specific command output.
+labels: ["new-parser"]
+body:
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor / OS version
+      placeholder: "Nokia SR OS 23.10 (MD-CLI)"
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: "show router bgp summary"
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Sanitized output
+      description: Run it through tools/sanitize_fixture.py, or remove public IPs, hostnames and secrets by hand.
+      render: text
+  - type: textarea
+    id: fields
+    attributes:
+      label: Fields that matter
+      description: "Which fields should be extracted (peer, state, prefixes received...)?"

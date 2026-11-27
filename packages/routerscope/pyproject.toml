@@ -1,0 +1,33 @@
+[project]
+name = "routerscope"
+version = "0.0.1"
+description = "Instant search, time-travel diff and a Winbox-like browser for multi-vendor router configs and CLI sessions."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "routerscope contributors" }]
+keywords = ["network", "router", "bgp", "search", "diff", "cli", "ssh"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Telecommunications Industry",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Typing :: Typed",
+]
+dependencies = ["netcmd-safety", "netprompt", "netaddr-search"]
+
+[project.urls]
+Homepage = "https://github.com/dalcorsogabriel/routerscope"
+Issues = "https://github.com/dalcorsogabriel/routerscope/issues"
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/routerscope"]
