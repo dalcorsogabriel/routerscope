@@ -2,7 +2,7 @@
 """Sanitize device output before committing it as a fixture, or check files for leftovers.
 
     uv run python tools/sanitize_fixture.py IN [-o OUT | --in-place] [--salt S]
-        [--remap-private] [--descriptions] [--vendor V] [--map-out FILE]
+        [--remap-private] [--keep-descriptions] [--vendor V] [--map-out FILE]
     uv run python tools/sanitize_fixture.py --check PATH...
 
 Thin wrapper around ``routerscope.sanitize``; see tools/README.md.
@@ -28,7 +28,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--in-place", action="store_true", help="overwrite the input file")
     p.add_argument("--salt", default="", help="salt for the deterministic mapping")
     p.add_argument("--remap-private", action="store_true", help="also remap RFC1918/CGNAT")
-    p.add_argument("--descriptions", action="store_true", help="replace description text")
+    p.add_argument(
+        "--keep-descriptions",
+        action="store_true",
+        help="do not replace descriptions, banners, comments and user names",
+    )
     p.add_argument("--vendor", help="vendor hint (e.g. cisco_ios)")
     p.add_argument("--map-out", help="write the original->sanitized mapping (never commit it)")
     p.add_argument("--check", nargs="+", metavar="PATH", help="scan files/dirs; exit 1 on findings")
@@ -94,7 +98,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     text = decoded.text
-    san = Sanitizer(args.salt, remap_private=args.remap_private, descriptions=args.descriptions)
+    san = Sanitizer(
+        args.salt, remap_private=args.remap_private, descriptions=not args.keep_descriptions
+    )
     result = encode_text(san.sanitize(text, args.vendor), decoded)
     if args.in_place:
         src.write_bytes(result)

@@ -140,10 +140,10 @@ def test_cli_sanitize_modes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     assert "never commit" in capsys.readouterr().err
     data = out.read_bytes()
     assert data.count(b"\r\n") == 3 and b"PE1" not in data and b"8.8.8.1" not in data
-    assert json.loads(mapping.read_text(encoding="utf-8"))["hostname"]["PE1"] == "R1"
+    assert json.loads(mapping.read_text(encoding="utf-8"))["hostname"]["pe1"] == "R1"
     assert src.read_bytes() == raw
 
-    assert tool.main([str(src), "--in-place", "--descriptions", "--remap-private"]) == 0
+    assert tool.main([str(src), "--in-place", "--keep-descriptions", "--remap-private"]) == 0
     assert b"PE1" not in src.read_bytes() and src.read_bytes().count(b"\r\n") == 3
     # sanitizing the output again changes nothing
     assert tool.main([str(out), "--in-place"]) == 0

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
@@ -63,6 +64,10 @@ def classify_v6(addr: IPv6Address) -> str:
     return "keep"
 
 
+_NAT64 = IPv6Network("64:ff9b::/96")
+_LONG_RUN = re.compile(r"[0-9A-Fa-f:.]{200,}")
+
+
 @dataclass(frozen=True, slots=True)
 class AddrSpan:
     """The address part of an IP match (without ``/len`` or a trailing mask/wildcard)."""
@@ -73,20 +78,36 @@ class AddrSpan:
     plen: int
 
     @property
+    def embedded(self) -> str | None:
+        """How an IPv4 address is embedded in an IPv6 one: ``mapped``, ``nat64`` or ``compat``."""
+        a = self.address
+        if isinstance(a, IPv4Address):
+            return None
+        if a.ipv4_mapped is not None:
+            return "mapped"
+        if a in _NAT64:
+            return "nat64"
+        if 1 << 24 <= int(a) < 1 << 32:
+            return "compat"
+        return None
+
+    @property
     def v4(self) -> IPv4Address | None:
-        """The IPv4 address, either native or embedded in an IPv4-mapped IPv6 address."""
+        """The IPv4 address, either native or embedded in an IPv6 address."""
         a = self.address
         if isinstance(a, IPv4Address):
             return a
-        return a.ipv4_mapped
+        if self.embedded is None:
+            return None
+        return IPv4Address(int(a) & 0xFFFFFFFF)
 
     @property
     def mapped(self) -> bool:
-        return isinstance(self.address, IPv6Address) and self.address.ipv4_mapped is not None
+        return self.embedded is not None
 
     @property
     def v4_plen(self) -> int:
-        if self.mapped:
+        if self.embedded is not None:
             return 32 if self.plen >= 128 else max(self.plen - 96, 0)
         return self.plen
 
@@ -98,8 +119,30 @@ class AddrSpan:
         return classify_v6(self.address)
 
 
+_DOT_PORT = re.compile(r"(?<![\w.:])(?P<ip>(?:\d{1,3}\.){3}\d{1,3})\.(?P<port>\d{1,5})(?![\w.])")
+_DOT_PORT6 = re.compile(
+    r"(?<![\w:.])(?P<ip>[0-9A-Fa-f:]*:[0-9A-Fa-f:]+)\.(?P<port>\d{1,5})(?![\w.])"
+)
+_QUAD = re.compile(r"(?<![\w.])(?P<ip>(?:\d{1,3}\.){3}\d{1,3})(?:/(?P<len>\d{1,2}))?(?![\w.:])")
+# a four-part number after one of these words is a software version, if it looks like one
+_VERSION_BEFORE = re.compile(r"(?:version|release|build)[ \t:=]*$", re.IGNORECASE)
+
+
+def _version_like(text: str, start: int, addr: IPv4Address) -> bool:
+    if max(addr.packed) > 99:
+        return False
+    window = max(0, start - 24)  # the keyword sits right before the number: bounded look-back
+    line_start = max(text.rfind("\n", window, start) + 1, window)
+    before = text[line_start:start]
+    m = _VERSION_BEFORE.search(before)
+    return m is not None and (m.start() == 0 or not before[m.start() - 1].isalnum())
+
+
 def iter_addr_spans(text: str) -> Iterator[AddrSpan]:
-    for m in find_ips(text, skip_after=VERSION_WORDS):
+    spans: list[AddrSpan] = []
+    # No address is 200+ hex/colon/dot characters long; masking such runs keeps find_ips linear.
+    masked = _LONG_RUN.sub(lambda r: " " * len(r.group()), text)
+    for m in find_ips(masked):
         if m.kind is MatchKind.PREFIX:
             end = m.start + m.text.index("/")
         elif m.kind in (MatchKind.MASK, MatchKind.WILDCARD):
@@ -109,7 +152,35 @@ def iter_addr_spans(text: str) -> Iterator[AddrSpan]:
         plen = m.network.prefixlen
         if m.kind in (MatchKind.MASK, MatchKind.WILDCARD) and plen == 0:
             plen = 32  # "0.0.0.0 0.0.0.0" style default: address itself is what matters
-        yield AddrSpan(m.start, end, m.address, plen)
+        if isinstance(m.address, IPv4Address) and _version_like(text, m.start, m.address):
+            continue
+        spans.append(AddrSpan(m.start, end, m.address, plen))
+    # forms find_ips does not recognise: "200.1.2.4.179" (host.port) and leading zeros
+    covered = [(s.start, s.end) for s in spans]
+    for rx in (_DOT_PORT, _QUAD):
+        for rm in rx.finditer(masked):
+            octets = [int(x) for x in rm["ip"].split(".")]
+            s0, e0 = rm.start("ip"), rm.end("ip")
+            if max(octets) > 255 or any(s < e0 and s0 < e for s, e in covered):
+                continue
+            if rx is _QUAD and not re.search(r"(?:^|\.)0\d", rm["ip"]):
+                continue
+            plen = 32
+            if rx is _QUAD and rm["len"] is not None and int(rm["len"]) <= 32:
+                plen = int(rm["len"])
+            spans.append(AddrSpan(s0, e0, IPv4Address(bytes(octets)), plen))
+            covered.append((s0, e0))
+    for rm in _DOT_PORT6.finditer(masked):  # "2001:db8::1.179"
+        s0, e0 = rm.start("ip"), rm.end("ip")
+        if any(s < e0 and s0 < e for s, e in covered):
+            continue
+        try:
+            addr6 = IPv6Address(rm["ip"])
+        except ValueError:
+            continue
+        spans.append(AddrSpan(s0, e0, addr6, 128))
+        covered.append((s0, e0))
+    yield from sorted(spans, key=lambda s: s.start)
 
 
 def digest(salt: str, label: str, key: str) -> bytes:

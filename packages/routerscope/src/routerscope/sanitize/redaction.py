@@ -32,13 +32,13 @@ _TYPES = (
     r"|ascii-text|ascii|hexadecimal|hex|key|type|value|level"
 )
 # possessive: never give a type token back to be mistaken for the value
-_SKIP = rf"(?:(?:{_TYPES})\s+)*+"
+_SKIP = rf"(?:(?:{_TYPES})\s+){{0,6}}+"
 _DENY = (
     r"(?!(?:is|are|was|set|has|not|can|will|required|configured|none|disabled|enabled|prompt"
     r"|policy|encryption|recovery|address|hostname|min-length|max-length|lifetime|aging"
     r"|history|attempts|retries|key-string|key-chain|keychain|config-key)(?:\s|$|;))(?![{}])(?!\"\")"
 )
-_COMM_SKIP = r"(?:(?:read|write|complex|cipher|simple|irreversible-cipher)\s+)*+"
+_COMM_SKIP = r"(?:(?:read|write|complex|cipher|simple|irreversible-cipher)\s+){0,3}+"
 _CIPHER_DENY = r"(?!(?:aes|3des|des|rc4|chacha|sm4|hmac|null|ssh|rsa|dh|aead)[\w-]*(?:\s|$))"
 _MD5_DENY = (
     r"(?!(?:cipher|simple|plain|key-chain|keychain|key|hex|encrypted|clear|hmac|auth|spi"
@@ -61,9 +61,13 @@ RULES: tuple[Rule, ...] = (
     rule("vrp-blob-old", r"(?P<v>%@%@.*?%@%@)"),
     rule(
         "url-credentials",
-        r"[A-Za-z][A-Za-z0-9+.-]*://(?P<v1>[^\s:/@\"'<>]+):(?P<v>[^\s\"'/]+)@(?=[^\s@\"']+)",
+        r"(?<![\w+.-])[A-Za-z][A-Za-z0-9+.-]{0,30}://(?P<v1>[^\s:/@\"'<>]+):(?P<v>[^\s\"'/]+)@"
+        r"(?=[^\s@\"']+)",
     ),
-    rule("url-user", r"[A-Za-z][A-Za-z0-9+.-]*://(?P<v>[^\s:/@\"'<>]+)@(?=[^\s@\"']+)"),
+    rule(
+        "url-user",
+        r"(?<![\w+.-])[A-Za-z][A-Za-z0-9+.-]{0,30}://(?P<v>[^\s:/@\"'<>]+)@(?=[^\s@\"']+)",
+    ),
     rule(
         "password",
         rf"(?<!\w)[\w-]*?(?:password|passwd|pwd|passphrase|secret)(?![\w-])\s+{_SKIP}{_DENY}{_V}",
@@ -108,7 +112,7 @@ RULES: tuple[Rule, ...] = (
     rule(
         "snmp-host",
         r"(?<![\w-])snmp-server\s+host\s+\S+\s+(?:(?:vrf\s+\S+|version\s+\S+|traps?|informs?"
-        r"|udp-port\s+\d+|auth|priv|noauth|authpriv|encrypted)\s+)*+"
+        r"|udp-port\s+\d+|auth|priv|noauth|authpriv|encrypted)\s+){0,8}+"
         r"(?!(?:traps?|informs?|version|vrf|udp-port|auth|priv|noauth|authpriv)(?:\s|$))"
         r"(?P<v>\S+)",
     ),
@@ -127,13 +131,13 @@ RULES: tuple[Rule, ...] = (
     ),
     rule(
         "snmp-user",
-        rf"(?<![\w-])(?:auth|priv)\s+{_ALG}\s+(?:(?:encrypted|clear|[0-9])\s+)*+"
+        rf"(?<![\w-])(?:auth|priv)\s+{_ALG}\s+(?:(?:encrypted|clear|[0-9])\s+){{0,4}}+"
         rf"(?!(?:priv|auth|access)(?:\s|$)){_V}",
     ),
     rule(
         "md5",
         r"(?<![\w-])md5\s+(?:[0-9]{1,3}\s+|(?![0-9]{1,3}\s))"
-        rf"(?:(?:plain|simple|encrypted|clear|7|key)\s+)*+{_MD5_DENY}{_V}",
+        rf"(?:(?:plain|simple|encrypted|clear|7|key)\s+){{0,4}}+{_MD5_DENY}{_V}",
     ),
     rule(
         "auth-header",

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 
 _EOL = re.compile(r"\r\n|\n|\r")
 _ROS_PATH = re.compile(r"/[A-Za-z]")
+# RouterOS prompt: "[admin@router] > /system identity print" or "[admin@router] /ip firewall> print"
+_ROS_PROMPT = re.compile(r"\[[^\]\n]+@[^\]\n]+\]\s*(?P<path>/[^>\n]*)?>\s*(?P<cmd>/\S.*)?$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +74,8 @@ def split_lines(text: str) -> Iterator[Line]:
         stripped = body.strip()
         if body.startswith("/") and _ROS_PATH.match(body):
             ros_path = stripped.lower()
+        elif (pm := _ROS_PROMPT.match(body)) is not None and (pm["cmd"] or pm["path"]):
+            ros_path = (pm["cmd"] or pm["path"]).strip().lower()
         if stripped:
             expanded = body.expandtabs(8)
             indent = len(expanded) - len(expanded.lstrip())

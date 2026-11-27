@@ -258,7 +258,7 @@ def test_hostnames_from_prompts_and_statements() -> None:
         assert name not in out
     assert out.startswith("R1#show version\nhostname R1\nR1 uptime is 1 week\n<R2>display")
     assert "root@R3> show" in out and "name=R4" in out
-    assert "description link to R1" in out
+    assert "description desc-1" in out
     assert san.sanitize(out) == out
 
 
@@ -295,7 +295,7 @@ def test_emails_and_descriptions() -> None:
     assert out.splitlines()[-1] == "peer 192.0.2.2 description"
     assert san.sanitize(out) == out
     # off by default
-    assert "ACME Ltd" in Sanitizer().sanitize(text)
+    assert "ACME Ltd" in Sanitizer(descriptions=False).sanitize(text)
 
 
 def test_determinism_and_salt() -> None:
@@ -347,7 +347,7 @@ def test_mapping_is_exposed_and_json_serializable() -> None:
     san.sanitize("peer 8.8.8.8 remote-as 13335\nhostname A\n 8.8.8.1\n2a01::1\n")
     m = san.mapping
     assert m["ipv4"]["8.8.8.8"].startswith(("192.", "198.", "203."))
-    assert m["asn"]["13335"] and m["hostname"]["A"] == "R1" and "ipv4_blocks" in m
+    assert m["asn"]["13335"] and m["hostname"]["a"] == "R1" and "ipv4_blocks" in m
     assert m["ipv6_blocks"]
     json.dumps(m)
 
