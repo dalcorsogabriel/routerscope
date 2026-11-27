@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated
 
-from netcmd_safety import VENDORS
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Frozen(BaseModel):
@@ -14,15 +14,26 @@ class Frozen(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
 
-def check_vendor(value: str) -> str:
-    """Validate a vendor id against :data:`netcmd_safety.VENDORS`."""
-    if value not in VENDORS:
-        raise ValueError(f"unknown vendor id {value!r}; expected one of {', '.join(VENDORS)}")
-    return value
+VENDOR_ID_PATTERN = r"^[a-z][a-z0-9_]*$"
+
+VendorId = Annotated[str, Field(pattern=VENDOR_ID_PATTERN)]
+"""A vendor id: a built-in one (``cisco_ios``, ``huawei_vrp``, ...) or a plugin's own id."""
+
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
 
-VendorId = Annotated[str, AfterValidator(check_vendor)]
-"""A vendor id known to netcmd-safety (``cisco_ios``, ``huawei_vrp``, ...)."""
+def split_lines(text: str) -> list[str]:
+    """Split ``text`` into lines the way every routerscope component numbers them.
+
+    Only LF, CR and CRLF break lines (not form feed, ``\\x85`` or ``\\u2028`` as
+    ``str.splitlines`` does), and a trailing line break does not add an empty last line.
+    :class:`SourceRef` line numbers are 1-based indexes into this list.
+    """
+    lines = _LINE_BREAK.split(text)
+    if lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
 
 Asn = Annotated[int, Field(ge=1, le=4294967295)]
 """A 32-bit autonomous system number (1..4294967295)."""

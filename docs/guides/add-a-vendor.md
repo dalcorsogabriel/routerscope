@@ -22,11 +22,11 @@ acme_os = "my_vendor_plugin:AcmePlugin"
 ## 2. Implement what the vendor supports
 
 Subclass `BaseVendorPlugin` and override only what you need. Everything else has a safe
-default (no detection, empty parse, no commands, no snippets).
+default (netprompt detection for built-in vendor ids only, empty parse, no commands, no snippets).
 
 | Method | Purpose |
 |---|---|
-| `detect(text) -> float` | Confidence 0..1 that the text is from this vendor. Default: netprompt fingerprints. |
+| `detect(text) -> float` | Confidence 0..1 that the text is from this vendor. Default: netprompt fingerprints, which only know the built-in vendor ids, so a new vendor must implement it. |
 | `segment(text)` | Split a session into prompt / command / output. Default: netprompt. |
 | `parse_config(text, snapshot) -> ParsedConfig` | Turn a config into neutral objects. |
 | `parse_command(command, output, snapshot) -> ParseResult \| None` | Parse one command's output, `None` if unsupported. |
@@ -94,3 +94,13 @@ line ranges.
   read-only commands is skipped with a logged warning. It never crashes routerscope.
 * `routerscope.vendors.detect_vendor(text)` asks every plugin and returns the best match, or
   `None` on no match or a tie.
+
+## Rules the registry enforces
+
+- `readonly_commands()` must return a list or tuple of strings. It is called **once**, when the
+  plugin is registered; the result is frozen, so changing it later has no effect.
+- For a vendor id that netcmd-safety knows, every command must be collector-safe in exec mode,
+  or the whole plugin is rejected. For other ids the collector never sends any command.
+- Line numbers in `SourceRef` follow `routerscope.model.split_lines` (LF, CR and CRLF only).
+- `parse_command` returns `None` for commands the plugin does not support and raises for output
+  it cannot parse; callers isolate plugin errors.

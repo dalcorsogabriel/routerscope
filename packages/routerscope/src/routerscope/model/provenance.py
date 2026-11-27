@@ -8,7 +8,7 @@ from typing import Literal, Self
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
 
-from routerscope.model._base import Frozen, Sha256Hex, VendorId
+from routerscope.model._base import Frozen, Sha256Hex, VendorId, split_lines
 
 SourceKind = Literal[
     "file", "session_log", "oxidized", "rancid", "paste", "drop_folder", "collector"
@@ -76,7 +76,7 @@ def make_snapshot(
 ) -> Snapshot:
     """Build a :class:`Snapshot` from content plus metadata.
 
-    ``captured_at`` must be timezone-aware. The line count follows ``str.splitlines`` on the
+    ``captured_at`` must be timezone-aware. The line count follows :func:`split_lines` on the
     UTF-8 decoded text (undecodable bytes are replaced).
     """
     data = content.encode("utf-8") if isinstance(content, str) else content
@@ -90,5 +90,5 @@ def make_snapshot(
         captured_at=captured_at,
         source=source,
         size=len(data),
-        line_count=len(text.splitlines()),
+        line_count=len(split_lines(text)),
     )

@@ -12,7 +12,7 @@ from typing import Annotated, Self
 
 from pydantic import Field, model_validator
 
-from routerscope.model._base import Frozen, Sha256Hex
+from routerscope.model._base import VENDOR_ID_PATTERN, Frozen, Sha256Hex
 from routerscope.model.objects import (
     ACL,
     IGP,
@@ -31,8 +31,16 @@ from routerscope.model.objects import (
     Transceiver,
     Version,
 )
+from routerscope.model.provenance import SourceRef
 
-_VENDOR_ID = r"^[a-z][a-z0-9_]*$"
+_VENDOR_ID = VENDOR_ID_PATTERN
+
+
+def _refs(obj: ParsedObject) -> Iterator[SourceRef]:
+    """The object's own ref plus refs of nested parts (policy terms)."""
+    yield obj.ref
+    if isinstance(obj, Policy):
+        yield from (term.ref for term in obj.terms if term.ref is not None)
 
 
 class ParsedConfig(Frozen):
@@ -83,11 +91,12 @@ class ParsedConfig(Frozen):
     @model_validator(mode="after")
     def _refs_match_snapshot(self) -> Self:
         for obj in self.iter_objects():
-            if obj.ref.snapshot_id != self.snapshot_id:
-                raise ValueError(
-                    f"{obj.kind} ref points at snapshot {obj.ref.snapshot_id[:12]}, "
-                    f"not {self.snapshot_id[:12]}"
-                )
+            for ref in _refs(obj):
+                if ref.snapshot_id != self.snapshot_id:
+                    raise ValueError(
+                        f"{obj.kind} ref points at snapshot {ref.snapshot_id[:12]}, "
+                        f"not {self.snapshot_id[:12]}"
+                    )
         return self
 
 
@@ -102,6 +111,6 @@ class ParseResult(Frozen):
     @model_validator(mode="after")
     def _refs_match_snapshot(self) -> Self:
         for obj in self.objects:
-            if obj.ref.snapshot_id != self.snapshot_id:
+            if any(ref.snapshot_id != self.snapshot_id for ref in _refs(obj)):
                 raise ValueError(f"{obj.kind} ref points at a different snapshot")
         return self

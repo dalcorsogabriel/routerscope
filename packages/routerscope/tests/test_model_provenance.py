@@ -5,7 +5,14 @@ from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from pydantic import ValidationError
-from routerscope.model import Snapshot, Source, SourceRef, content_digest, make_snapshot
+from routerscope.model import (
+    Snapshot,
+    Source,
+    SourceRef,
+    content_digest,
+    make_snapshot,
+    split_lines,
+)
 
 
 def test_make_snapshot_hashes_and_counts(source: Source) -> None:
@@ -43,11 +50,36 @@ def test_naive_datetime_rejected(source: Source) -> None:
         make_snapshot("x", source=source, kind="config", captured_at=datetime(2025, 1, 1))
 
 
-def test_unknown_vendor_rejected(source: Source) -> None:
-    with pytest.raises(ValidationError, match="unknown vendor"):
+def test_third_party_vendor_accepted_bad_id_rejected(source: Source) -> None:
+    snap = make_snapshot(
+        "x", source=source, kind="config", captured_at=datetime.now(UTC), vendor="acme_os"
+    )
+    assert snap.vendor == "acme_os"
+    with pytest.raises(ValidationError):
         make_snapshot(
-            "x", source=source, kind="config", captured_at=datetime.now(UTC), vendor="acme"
+            "x", source=source, kind="config", captured_at=datetime.now(UTC), vendor="Acme OS"
         )
+
+
+@pytest.mark.parametrize(
+    ("text", "lines"),
+    [
+        ("", []),
+        ("a", ["a"]),
+        ("a\n", ["a"]),
+        ("a\r\nb\rc\nd", ["a", "b", "c", "d"]),
+        ("a\n\nb\n", ["a", "", "b"]),
+        ("banner\x0cpage\u2028x\x85y", ["banner\x0cpage\u2028x\x85y"]),
+    ],
+)
+def test_split_lines(text: str, lines: list[str]) -> None:
+    assert split_lines(text) == lines
+
+
+def test_line_count_matches_split_lines(source: Source) -> None:
+    text = "a\r\nb\x0cc\u2028d\n"
+    snap = make_snapshot(text, source=source, kind="config", captured_at=datetime.now(UTC))
+    assert snap.line_count == len(split_lines(text)) == 2
 
 
 def test_frozen_and_forbid_extra(snapshot: Snapshot, source: Source) -> None:

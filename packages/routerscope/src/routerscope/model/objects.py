@@ -19,6 +19,7 @@ from ipaddress import (
 from typing import Any, Literal, Self
 
 from netaddr_search import normalize_interface
+from netcmd_safety import VENDORS
 from pydantic import Field, model_validator
 
 from routerscope.model._base import Asn, Frozen, VendorId
@@ -42,10 +43,9 @@ def _with_normalized_name(data: Any) -> Any:
         name = data.get("name")
         if isinstance(name, str):
             vendor = data.get("vendor")
-            try:
-                data = {**data, "name_normalized": normalize_interface(name, vendor)}
-            except (ValueError, TypeError) as exc:
-                raise ValueError(f"cannot normalize interface name {name!r}: {exc}") from exc
+            # Third-party vendor ids have no naming family in netaddr-search: use the default.
+            family = vendor if vendor in VENDORS else None
+            data = {**data, "name_normalized": normalize_interface(name, family)}
     return data
 
 

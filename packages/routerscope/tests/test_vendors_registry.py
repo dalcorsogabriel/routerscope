@@ -123,7 +123,7 @@ def test_non_string_command_rejected() -> None:
         def readonly_commands(self) -> Sequence[str]:
             return [42]  # type: ignore[list-item]
 
-    assert "not collector-safe" in (check_plugin(P()) or "")
+    assert "not a string" in (check_plugin(P()) or "")
 
 
 def test_duplicate_id_keeps_first(caplog: pytest.LogCaptureFixture) -> None:
@@ -205,3 +205,60 @@ def test_snippet_model() -> None:
     assert Snippet.model_validate_json(snip.model_dump_json()) == snip
     intent = SnippetIntent(action="x", target="y", params={"k": "v"})
     assert SnippetIntent.model_validate_json(intent.model_dump_json()) == intent
+
+
+# --- regressions from code review: commands are frozen at registration ------------
+
+
+class Flipping(BaseVendorPlugin):
+    id = "cisco_ios"
+    name = "Flipping"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def readonly_commands(self) -> Sequence[str]:
+        self.calls += 1
+        return ["show version"] if self.calls == 1 else ["reload"]
+
+
+class Mutating(BaseVendorPlugin):
+    id = "cisco_ios"
+    name = "Mutating"
+    shared: list[str] = ["show version"]  # noqa: RUF012
+
+    def readonly_commands(self) -> Sequence[str]:
+        return self.shared
+
+
+def test_commands_cannot_change_after_registration() -> None:
+    reg = VendorRegistry()
+    assert reg.register(Flipping())
+    assert reg.collector_commands("cisco_ios") == ["show version"]
+
+    reg = VendorRegistry()
+    plugin = Mutating()
+    assert reg.register(plugin)
+    plugin.shared.append("reload")
+    assert reg.collector_commands("cisco_ios") == ["show version"]
+
+
+class StringCommands(BaseVendorPlugin):
+    id = "cisco_ios"
+    name = "Str"
+
+    def readonly_commands(self) -> Sequence[str]:
+        return "show version"
+
+
+class GeneratorCommands(BaseVendorPlugin):
+    id = "cisco_ios"
+    name = "Gen"
+
+    def readonly_commands(self) -> Sequence[str]:
+        return (c for c in ["show version"])  # type: ignore[return-value]
+
+
+@pytest.mark.parametrize("plugin", [StringCommands(), GeneratorCommands()])
+def test_commands_must_be_a_list_or_tuple(plugin: BaseVendorPlugin) -> None:
+    assert "list or tuple" in (check_plugin(plugin) or "")

@@ -13,6 +13,9 @@ Rules:
   knows), is skipped with a warning. Discovery never raises because of a plugin.
 * For vendor ids netcmd-safety does not know, commands cannot be verified, so
   :meth:`VendorRegistry.collector_commands` returns nothing for them.
+* ``readonly_commands()`` is called once, at registration. The validated commands are frozen
+  in the registry, so a plugin cannot change them later, and they are checked again (in exec
+  mode) every time :meth:`VendorRegistry.collector_commands` hands them out.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from functools import lru_cache
 from importlib.metadata import EntryPoint, entry_points
 
@@ -41,8 +44,34 @@ def _dist_name(ep: EntryPoint) -> str:
     return str(dist.name).lower().replace("_", "-") if dist is not None else ""
 
 
+def _safe(cmd: str, vendor_id: str) -> bool:
+    return netcmd_safety.is_collector_safe(cmd, vendor_id, mode=netcmd_safety.Mode.EXEC)
+
+
+def _validated_commands(plugin: VendorPlugin) -> tuple[str, ...] | str:
+    """The plugin's read-only commands as a tuple, or the reason they are unacceptable."""
+    try:
+        raw = plugin.readonly_commands()
+    except Exception as exc:
+        return f"readonly_commands() failed: {exc!r}"
+    if isinstance(raw, str | bytes) or not isinstance(raw, Sequence):
+        return "readonly_commands() must return a list or tuple of strings"
+    commands = tuple(raw)
+    for cmd in commands:
+        if not isinstance(cmd, str):
+            return f"readonly command {cmd!r} is not a string"
+        if plugin.id in netcmd_safety.VENDORS and not _safe(cmd, plugin.id):
+            return f"readonly command {cmd!r} is not collector-safe for {plugin.id}"
+    return commands
+
+
 def check_plugin(plugin: object) -> str | None:
     """Return why ``plugin`` is unacceptable, or ``None`` if it is fine."""
+    problem = _check(plugin)
+    return problem if isinstance(problem, str) else None
+
+
+def _check(plugin: object) -> tuple[str, ...] | str:
     if not isinstance(plugin, VendorPlugin):
         return "does not satisfy the VendorPlugin protocol"
     plugin_id = plugin.id
@@ -50,15 +79,7 @@ def check_plugin(plugin: object) -> str | None:
         return f"invalid plugin id {plugin_id!r} (use lowercase letters, digits, underscores)"
     if not isinstance(plugin.name, str) or not plugin.name:
         return "missing plugin name"
-    try:
-        commands = list(plugin.readonly_commands())
-    except Exception as exc:
-        return f"readonly_commands() failed: {exc!r}"
-    if plugin_id in netcmd_safety.VENDORS:
-        for cmd in commands:
-            if not isinstance(cmd, str) or not netcmd_safety.is_collector_safe(cmd, plugin_id):
-                return f"readonly command {cmd!r} is not collector-safe for {plugin_id}"
-    return None
+    return _validated_commands(plugin)
 
 
 class VendorRegistry:
@@ -66,15 +87,16 @@ class VendorRegistry:
 
     def __init__(self) -> None:
         self._plugins: dict[str, VendorPlugin] = {}
+        self._commands: dict[str, tuple[str, ...]] = {}
         self._builtin: set[str] = set()
 
     def register(
         self, plugin: object, *, builtin: bool = False, replace: bool = False, source: str = ""
     ) -> bool:
         """Validate and add ``plugin``. Returns ``False`` (and logs) if it was rejected."""
-        problem = check_plugin(plugin)
-        if problem is not None:
-            logger.warning("skipping vendor plugin %s: %s", source or repr(plugin), problem)
+        checked = _check(plugin)
+        if isinstance(checked, str):
+            logger.warning("skipping vendor plugin %s: %s", source or repr(plugin), checked)
             return False
         assert isinstance(plugin, VendorPlugin)
         if plugin.id in self._plugins and not replace:
@@ -87,6 +109,7 @@ class VendorRegistry:
             )
             return False
         self._plugins[plugin.id] = plugin
+        self._commands[plugin.id] = checked
         if builtin:
             self._builtin.add(plugin.id)
         else:
@@ -163,11 +186,18 @@ class VendorRegistry:
         return ranked[0][0]
 
     def collector_commands(self, vendor_id: str) -> list[str]:
-        """Read-only commands a collector may send for ``vendor_id`` (verified vendors only)."""
-        plugin = self.get(vendor_id)
-        if plugin is None or vendor_id not in netcmd_safety.VENDORS:
+        """Read-only commands a collector may send for ``vendor_id`` (verified vendors only).
+
+        These are the commands validated at registration, checked again here; they are meant to
+        be sent in exec mode.
+        """
+        commands = self._commands.get(vendor_id, ())
+        if vendor_id not in netcmd_safety.VENDORS:
             return []
-        return list(plugin.readonly_commands())
+        if not all(_safe(cmd, vendor_id) for cmd in commands):  # pragma: no cover - defensive
+            logger.error("vendor plugin %s: stored commands failed re-check", vendor_id)
+            return []
+        return list(commands)
 
 
 @lru_cache(maxsize=1)

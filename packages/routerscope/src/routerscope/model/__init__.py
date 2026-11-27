@@ -1,5 +1,6 @@
 """Vendor-neutral data model: provenance, parsed objects and parser result containers."""
 
+from routerscope.model._base import split_lines
 from routerscope.model.containers import ParsedConfig, ParseResult
 from routerscope.model.objects import (
     ACL,
@@ -65,4 +66,5 @@ __all__ = [
     "Version",
     "content_digest",
     "make_snapshot",
+    "split_lines",
 ]

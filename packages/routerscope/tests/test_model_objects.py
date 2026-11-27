@@ -46,14 +46,15 @@ def test_interface_normalization(ref: SourceRef) -> None:
     roundtrip(gi)
 
 
-def test_interface_bad_vendor(ref: SourceRef) -> None:
+def test_interface_bad_vendor_id(ref: SourceRef) -> None:
     with pytest.raises(ValidationError):
-        Interface(ref=ref, name="Gi0/1", vendor="acme")  # type: ignore[arg-type]
+        Interface(ref=ref, name="Gi0/1", vendor="Not-A-Vendor")
 
 
-def test_interface_normalization_error(ref: SourceRef) -> None:
-    with pytest.raises(ValidationError):
-        Interface.model_validate({"ref": ref, "name": "Gi0/1", "vendor": "nope"})
+def test_interface_third_party_vendor_uses_default_family(ref: SourceRef) -> None:
+    iface = Interface(ref=ref, name="Gi0/1", vendor="acme_os")
+    assert iface.vendor == "acme_os"
+    assert iface.name_normalized == Interface(ref=ref, name="Gi0/1").name_normalized
 
 
 def test_ref_required_and_extra_forbidden(ref: SourceRef) -> None:
@@ -214,3 +215,12 @@ def test_parse_result_discriminated_union(ref: SourceRef) -> None:
         ParseResult.model_validate(
             {"snapshot_id": ref.snapshot_id, "command": "x", "objects": [{"kind": "nope"}]}
         )
+
+
+def test_policy_term_ref_must_match_snapshot(ref: SourceRef) -> None:
+    from routerscope.model import ParsedConfig, Policy, PolicyTerm
+
+    other = SourceRef(snapshot_id="b" * 64, line_start=1, line_end=1)
+    policy = Policy(ref=ref, name="P", terms=(PolicyTerm(name="10", ref=other),))
+    with pytest.raises(ValidationError, match="ref points at snapshot"):
+        ParsedConfig(snapshot_id=ref.snapshot_id, policies=(policy,))
