@@ -1,5 +1,6 @@
 """Sanitize router output and configs: redact secrets, anonymize addresses, scan before commit."""
 
+from routerscope.sanitize.redaction import PLACEHOLDER, redact_secrets
 from routerscope.sanitize.sanitizer import Sanitizer
 from routerscope.sanitize.scan import (
     ALLOW_FILE,
@@ -9,7 +10,6 @@ from routerscope.sanitize.scan import (
     scan,
     scan_paths,
 )
-from routerscope.sanitize.redaction import PLACEHOLDER, redact_secrets
 
 __all__ = [
     "ALLOW_FILE",

@@ -167,7 +167,7 @@ def _redact_line(line: Line, vendor: str | None) -> str:
 def _block_body(body: str, *, inline_start: bool = True) -> str:
     """Replace the body of a PEM/certificate block by one placeholder line.
 
-    ``inline_start``: the body begins on the marker's own line (PEM), so that remainder is kept.
+    ``inline_start``: the body begins on the marker's own line (PEM); that remainder is dropped.
     """
     eols = list(_EOL.finditer(body))
     if not eols:
@@ -177,7 +177,8 @@ def _block_body(body: str, *, inline_start: bool = True) -> str:
     lead = indent.group() if indent else ""
     after = body[eols[-1].end() :]
     trailing = after if not after.strip() else ""
-    return body[:first] + lead + PLACEHOLDER + eols[0].group() + trailing
+    head = eols[0].group() if inline_start else ""
+    return head + lead + PLACEHOLDER + eols[0].group() + trailing
 
 
 def _pem_sub(m: re.Match[str]) -> str:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from routerscope.sanitize import PLACEHOLDER, redact_secrets, scan
 
 P = PLACEHOLDER

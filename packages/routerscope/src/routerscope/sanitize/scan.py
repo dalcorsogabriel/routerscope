@@ -11,8 +11,8 @@ from pathlib import Path
 from routerscope.sanitize._addr import iter_addr_spans
 from routerscope.sanitize._asn import is_public_asn, iter_asn_spans
 from routerscope.sanitize._lines import split_lines
-from routerscope.sanitize.sanitizer import EMAIL_RE, SAFE_EMAIL_DOMAIN
 from routerscope.sanitize.redaction import iter_block_spans, iter_secret_spans
+from routerscope.sanitize.sanitizer import EMAIL_RE, SAFE_EMAIL_DOMAIN
 
 ALLOW_FILE = ".sanitize-allow"
 _SKIP_DIRS = frozenset(

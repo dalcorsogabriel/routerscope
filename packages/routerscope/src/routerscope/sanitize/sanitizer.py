@@ -1,7 +1,7 @@
 """Deterministic fixture sanitizer.
 
-Phases run in this order on the whole text: secrets, descriptions (optional), e-mails,
-hostnames, MAC addresses, AS numbers, IP addresses. Each phase scans first and rewrites
+Phases run in this order on the whole text: secrets, descriptions (optional), hostnames,
+e-mails, MAC addresses, AS numbers, IP addresses. Each phase scans first and rewrites
 second, so the mapping only depends on the set of values in the text and on the salt.
 
 Alignment note: replacements can change the width of a token, so columns of tables may shift.
@@ -67,6 +67,8 @@ _GENERIC_NAMES = frozenset(
         *("router", "switch", "host", "localhost", "mikrotik", "huawei", "cisco", "juniper"),
         *("nokia", "routeros", "junos", "ios", "vrp", "sros", "ocnos", "system", "admin"),
         *("default", "test", "ubuntu", "linux", "bgp", "ospf", "isis", "none", "user"),
+        *("hostname", "sysname", "host-name", "name", "password", "secret", "description"),
+        *("interface", "address", "neighbor", "community", "version", "redacted"),
     }
 )
 _DONE_NAME = re.compile(r"R\d+$")
@@ -157,8 +159,8 @@ class Sanitizer:
         docs = [redact_secrets(t, vendor) for t in texts]
         if self.descriptions:
             docs = [self._descriptions(t) for t in docs]
-        docs = [self._emails(t) for t in docs]
         docs = self._hostnames(docs)
+        docs = [self._emails(t) for t in docs]
         docs = [self._macs(t) for t in docs]
         docs = self._asns(docs)
         return self._ips(docs)
@@ -272,7 +274,7 @@ class Sanitizer:
                     )
         for line in lines:
             found = detect_prompt(line.body, known_hostnames=known or None) if line.body else None
-            if found is None or not found[0].hostname:
+            if found is None or not found[0].hostname or found[0].hostname == "redacted":
                 continue
             prompt = found[0]
             host = prompt.hostname or ""
