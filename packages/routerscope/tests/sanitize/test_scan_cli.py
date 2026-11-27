@@ -66,15 +66,17 @@ def test_allowlist_literal_and_regex(tmp_path: Path) -> None:
     assert load_allowlist(tmp_path / "missing") == []
 
 
-def test_scan_paths_walks_directories_and_skips_binaries(tmp_path: Path) -> None:
+def test_scan_paths_walks_directories_and_never_skips_files(tmp_path: Path) -> None:
     (tmp_path / "sub").mkdir()
     (tmp_path / "sub" / "a.txt").write_text("enable secret 5 abc\n", encoding="utf-8")
     (tmp_path / "b.bin").write_bytes(b"\x00password x")
     (tmp_path / "c.png").write_bytes(b"password x")
     (tmp_path / "__pycache__").mkdir()
     (tmp_path / "__pycache__" / "x.txt").write_text("password y\n", encoding="utf-8")
-    found = scan_paths([tmp_path])
-    assert [f.path.name for f in found] == ["a.txt"]
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".git" / "config").write_text("password z\n", encoding="utf-8")
+    found = {f.path.name: f.finding.kind for f in scan_paths([tmp_path])}
+    assert found == {"a.txt": "secret", "b.bin": "binary", "c.png": "binary", "x.txt": "secret"}
     with pytest.raises(FileNotFoundError):
         scan_paths([tmp_path / "nope"])
 
@@ -151,10 +153,10 @@ def test_cli_sanitize_modes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
 def test_cli_stdout_and_errors(tmp_path: Path, capsysbinary: pytest.CaptureFixture[bytes]) -> None:
     tool = _tool()
     src = tmp_path / "in.txt"
-    src.write_bytes(b"peer 8.8.8.8 \xff\n")  # invalid UTF-8 byte survives
+    src.write_bytes(b"peer 8.8.8.8 caf\xc3\xa9\n")
     assert tool.main([str(src)]) == 0
     out = capsysbinary.readouterr().out
-    assert out.endswith(b" \xff\n") and b"8.8.8.8" not in out
+    assert out.endswith(b" caf\xc3\xa9\n") and b"8.8.8.8" not in out
     assert tool.main([str(tmp_path / "missing")]) == 2
     for argv in ([], [str(src), "--in-place", "-o", "x"], [str(src), "--check", "a"]):
         with pytest.raises(SystemExit) as exc:

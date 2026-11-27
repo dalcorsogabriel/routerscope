@@ -11,14 +11,17 @@ from pathlib import Path
 from routerscope.sanitize._addr import iter_addr_spans
 from routerscope.sanitize._asn import is_public_asn, iter_asn_spans
 from routerscope.sanitize._lines import split_lines
+from routerscope.sanitize.encoding import UndecodableError, decode_bytes
 from routerscope.sanitize.redaction import iter_block_spans, iter_secret_spans
 from routerscope.sanitize.sanitizer import EMAIL_RE, SAFE_EMAIL_DOMAIN
 
 ALLOW_FILE = ".sanitize-allow"
-_SKIP_DIRS = frozenset(
-    {"__pycache__", ".git", ".hypothesis", ".venv", "node_modules", ".mypy_cache"}
+_SKIP_DIRS = frozenset({".git"})
+# Files with these suffixes cannot be inspected as text: they are findings, never skipped.
+_OPAQUE_SUFFIXES = frozenset(
+    {".zip", ".gz", ".tgz", ".tar", ".bz2", ".xz", ".7z", ".rar", ".zst", ".png", ".jpg", ".jpeg"}
+    | {".gif", ".bmp", ".webp", ".ico", ".pdf", ".pyc", ".db", ".sqlite", ".sqlite3", ".bin"}
 )
-_SKIP_SUFFIXES = frozenset({".pyc", ".png", ".jpg", ".gif", ".zip", ".gz", ".db", ".pdf"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,17 +133,24 @@ def iter_files(paths: Iterable[str | Path]) -> Iterator[Path]:
             raise FileNotFoundError(str(item))
 
 
+def scan_file(path: Path, *, allow: Iterable[re.Pattern[str] | str] = ()) -> list[Finding]:
+    """Scan one file. Fails closed: undecodable or archive/image files are findings."""
+    if path.suffix.lower() in _OPAQUE_SUFFIXES:
+        return [Finding("binary", 0, 0, path.name, "archive or image suffix: cannot be inspected")]
+    data = path.read_bytes()
+    try:
+        decoded = decode_bytes(data)
+    except UndecodableError as exc:
+        return [Finding("binary", 0, 0, path.name, str(exc))]
+    return scan(decoded.text, allow=allow)
+
+
 def scan_paths(
     paths: Iterable[str | Path], *, allow: Iterable[re.Pattern[str] | str] = ()
 ) -> list[FileFinding]:
-    """Scan files and directories; binary files and caches are skipped."""
+    """Scan files and directories recursively. No file is ever skipped."""
     allowed = list(allow)
     out: list[FileFinding] = []
     for f in iter_files(paths):
-        if f.suffix in _SKIP_SUFFIXES:
-            continue
-        data = f.read_bytes()
-        if b"\0" in data:
-            continue
-        out.extend(FileFinding(f, x) for x in scan(data.decode("utf-8", "replace"), allow=allowed))
+        out.extend(FileFinding(f, x) for x in scan_file(f, allow=allowed))
     return out

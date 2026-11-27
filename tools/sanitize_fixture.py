@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 from routerscope.sanitize import ALLOW_FILE, Sanitizer, load_allowlist, scan_paths
+from routerscope.sanitize.encoding import UndecodableError, decode_bytes, encode_text
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -33,6 +34,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--check", nargs="+", metavar="PATH", help="scan files/dirs; exit 1 on findings")
     p.add_argument("--allow-file", default=str(REPO_ROOT / ALLOW_FILE), help="allowlist file")
     return p
+
+
+def _inside_git_repo(path: Path) -> bool:
+    """True when ``path`` lives in a git work tree (a mapping file there could be committed)."""
+    return any((p / ".git").exists() for p in (path.resolve().parent, *path.resolve().parents))
 
 
 def _check(paths: list[str], allow_file: str) -> int:
@@ -66,15 +72,30 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("an input file is required (or use --check)")
     if args.in_place and args.output:
         parser.error("--in-place and -o are mutually exclusive")
+    if args.map_out and _inside_git_repo(Path(args.map_out)):
+        print(
+            f"error: refusing to write {args.map_out} inside a git repository: the mapping maps "
+            "sanitized values back to the originals; choose a path outside the repo",
+            file=sys.stderr,
+        )
+        return 2
     src = Path(args.input)
     try:
         data = src.read_bytes()
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    text = data.decode("utf-8", "surrogateescape")
+    try:
+        decoded = decode_bytes(data)
+    except UndecodableError as exc:
+        print(
+            f"error: {src}: {exc}; convert the capture to UTF-8 (or UTF-16/32) and retry",
+            file=sys.stderr,
+        )
+        return 2
+    text = decoded.text
     san = Sanitizer(args.salt, remap_private=args.remap_private, descriptions=args.descriptions)
-    result = san.sanitize(text, args.vendor).encode("utf-8", "surrogateescape")
+    result = encode_text(san.sanitize(text, args.vendor), decoded)
     if args.in_place:
         src.write_bytes(result)
     elif args.output:
