@@ -26,6 +26,8 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Roadmap: roadmap.md
+  - Guides:
+      - guides/add-a-vendor.md
   - Decisions:
       - decisions/0001-record-architecture-decisions.md
       - decisions/0002-scaffolding-choices.md
