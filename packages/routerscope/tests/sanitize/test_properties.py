@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from routerscope.sanitize import Sanitizer, redact_secrets, scan
@@ -92,3 +95,23 @@ def test_sanitize_is_deterministic(text: str) -> None:
 def test_line_structure_preserved(text: str) -> None:
     out = Sanitizer().sanitize(text)
     assert out.count("\n") == text.count("\n")
+
+
+_CASE_LINES = [
+    ln
+    for f in sorted((Path(__file__).parent / "cases").glob("*.txt"))
+    for ln in f.read_text(encoding="utf-8").splitlines()
+    if ln.strip() and not ln.startswith("#")
+]
+_MARKER = re.compile(r"SECRET[A-Z0-9]{2,}")
+_CONTEXT_ONLY = ("SECRETJCOMM",)  # Junos "community X {" has no secret meaning outside snmp { }
+
+
+@CFG
+@given(st.lists(st.sampled_from(_CASE_LINES), min_size=1, max_size=12).map("\n".join))
+def test_realistic_documents_are_clean_and_stable(text: str) -> None:
+    out = Sanitizer().sanitize(text)
+    assert Sanitizer().sanitize(out) == out
+    survivors = [m for m in _MARKER.findall(out) if not m.startswith(_CONTEXT_ONLY)]
+    assert survivors == []
+    assert [f for f in scan(out) if not f.heuristic and f.kind != "asn"] == []
