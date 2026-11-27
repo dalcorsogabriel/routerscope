@@ -45,7 +45,7 @@ Feature branch → small Conventional Commits → PR to `main` (even solo) → C
 - Long-running reads (`print follow`, `monitor` without `once`) are classified read; the collector must enforce its own timeout.
 
 ## Current state
-Phase 0 done. Phase 1 Step 1 done: `netcmd-safety`, `netprompt` and `netaddr-search` merged (PRs #94–#96), 1600+ tests, three security review rounds on `netcmd-safety`. Repo is private until the maintainer flips it public. The `routerscope` app package is still a skeleton.
+Phase 0 done. Phase 1 Step 1 done: `netcmd-safety`, `netprompt` and `netaddr-search` merged (PRs #94–#96), 1600+ tests, three security review rounds on `netcmd-safety`. Repo is public (history recreated clean in Nov 2026). The `routerscope` app package is still a skeleton.
 
 ## Next steps
 1. Phase 1 Step 2 (`docs/plans/v0.1.md`): model, storage (SQLite FTS5), fixture sanitizer, vendor plugin protocol. Then importers → parsers → search/diff/locate → CLI → minimal UI → benchmarks → docs → v0.1.0.
