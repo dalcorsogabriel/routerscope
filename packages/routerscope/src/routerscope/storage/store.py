@@ -242,6 +242,19 @@ def auto_fts_query(text: str) -> str:
     return " ".join(quote_fts_literal(word) for word in text.split())
 
 
+def _strings(value: object) -> Iterator[str]:
+    """Every string inside a JSON-like structure (dict keys included)."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            yield from _strings(key)
+            yield from _strings(item)
+    elif isinstance(value, list | tuple):
+        for item in value:
+            yield from _strings(item)
+
+
 def _like_pattern(text: str) -> str:
     escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     return f"%{escaped}%"
@@ -493,18 +506,21 @@ class Store:
         """Store (or replace) parser output for a stored snapshot and plugin id.
 
         ``plugin`` must be a vendor-style id (``^[a-z][a-z0-9_]*$``). Parsers must run on the
-        stored (redacted) text from :meth:`get_content`. As a second line of defence the JSON
-        is passed through the redactor and refused with :class:`UnredactedDataError` if the
-        redactor would change it.
+        stored (redacted) text from :meth:`get_content`. As a second line of defence every
+        string value (line by line) goes through the redactor, and the data is refused with
+        :class:`UnredactedDataError` if the redactor would change any of them.
         """
         _vendor_id(plugin, "plugin")
         if not self._has_content(parsed.snapshot_id):
             raise UnknownSnapshotError(f"snapshot {parsed.snapshot_id[:12]} is not stored")
         data = parsed.model_dump_json()
-        if self._redactor(data, parsed.vendor) != data:
-            raise UnredactedDataError(
-                "parsed data still contains secrets; parse the redacted text from the store"
-            )
+        # The redactor is line-oriented, so check every string value on its own rather than
+        # the single-line JSON (where a value's tail would run into the next field).
+        for value in _strings(parsed.model_dump(mode="json")):
+            if any(self._redactor(line, parsed.vendor) != line for line in value.splitlines()):
+                raise UnredactedDataError(
+                    "parsed data still contains secrets; parse the redacted text from the store"
+                )
         kind, command = (
             ("config", "")
             if isinstance(parsed, ParsedConfig)
