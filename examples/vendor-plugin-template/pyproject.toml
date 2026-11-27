@@ -1,0 +1,19 @@
+[project]
+name = "routerscope-vendor-template"
+version = "0.0.1"
+description = "Template for a routerscope vendor plugin (fictional 'ExampleOS')."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = ["routerscope"]
+
+# The entry-point NAME must equal the plugin's `id`.
+[project.entry-points."routerscope.vendors"]
+example_os = "routerscope_vendor_template:ExamplePlugin"
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/routerscope_vendor_template"]
