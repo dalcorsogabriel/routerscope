@@ -1,0 +1,95 @@
+# MikroTik RouterOS 7
+
+read                /routing/bgp/session/print
+read                /routing bgp session print
+read                /ip/address/print
+read                /ip address print detail without-paging
+read                /ip address print where interface=ether1
+read                /ip route print where dst-address in 192.0.2.0/24
+read                /interface print stats
+read                /interface/monitor-traffic ether1 once
+read                /interface ethernet monitor ether1 once
+read                /system/resource/print
+read                /export
+read                /export compact
+read                /export terse verbose
+read                /ip firewall filter export
+read                /log print where topics~"bgp"
+read                /interface print where rx-byte>1000
+read                print
+read                /ip address pr
+read                /ip/address/print; /ip/route/print
+session             /quit
+session             quit
+session             ..
+
+config              /ip address add address=192.0.2.1/24 interface=ether1
+config              /routing/bgp/connection/set 0 remote.as=64497
+config              /interface set ether1 comment="uplink"
+config              /ip address enable 0
+config              set 0 comment=x
+config              /ip address edit 0 address
+destructive         /ip address remove 0
+destructive         /interface disable ether1
+destructive         /interface set ether1 disabled=yes
+destructive         /system reboot
+destructive         /system shutdown
+destructive         /system reset-configuration no-defaults=yes
+destructive         /import file-name=backup.rsc
+destructive         /export file=backup
+destructive         /ip address print file=out
+destructive         /interface reset-counters ether1
+destructive         /ip address print; /ip address remove 0
+config              /ip pr set enabled=yes
+destructive         /system package update install
+config              /ip address ad address=192.0.2.1/24 interface=ether1
+
+unknown             /ping 192.0.2.1
+unknown             /tool fetch url=https://example.com/x
+destructive         /system/script/run myscript
+unknown             :put [/ip address get 0]
+unknown             /ip address print where interface=[/interface find name=ether1]
+unknown             /ip address
+unknown             /system/package/update/check-for-updates
+
+# --- regressions from code review: an unlisted verb must not hide behind a read verb
+unknown             /system backup save pr
+unknown             /system/backup/save print
+unknown             /system backup load ex
+unknown             /tool/sniffer/start get
+destructive         /tool fetch url=http://x dst-path=a get
+unknown             /system/"reboot" print
+destructive         /ip address print \"; /system reboot; \"
+unknown             /ip address print \
+read                /ip address print count-only
+read                /routing/bgp/connection/print detail where name="UPLINK-1"
+unknown             /ip address print append
+
+# --- regressions from the second review: abbreviated parameters and `where`
+destructive         /ip address print fi=x
+destructive         /ip address print fil=x
+destructive         /ip address print f=x
+destructive         /export fi=x
+destructive         /ip address export fi=x
+destructive         /ip address print where disabled=no file=x
+destructive         /ip address print where x=1 fi=y
+destructive         /ip address print "file"=x
+unknown             /ip address print pro=address
+read                /ip address print proplist=address,interface
+read                /ip address print where address=192.0.2.1/24
+read                /ip address print where address in 192.0.2.0/24 and !disabled
+read                /log print where topics~"bgp" and message~"down"
+read                /interface monitor-traffic ether1 once
+unknown             /ip address print where (address=192.0.2.1/24
+destructive         /ip address print where name = a file = b
+unknown             /ip address print where name=a file =b
+unknown             /ip address print where name=a file b
+unknown             /ip address print where name=a fi
+destructive         /ip address print where name=x /system/reset-configuration
+destructive         /ip address print where name=x remove numbers=0
+destructive         /ip address print where name=x set disabled=yes
+unknown             /ip address print where =x
+unknown             /ip address print where name=a -file=x
+unknown             /ip address print where name=a :file=x
+read                /ip address print where disabled and !dynamic
+read                /interface print where running and type=ether

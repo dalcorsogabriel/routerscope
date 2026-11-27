@@ -1,0 +1,57 @@
+# Cisco IOS-XR
+
+read                show bgp summary
+read                show bgp ipv4 unicast neighbors 192.0.2.1 routes
+read                sh run router bgp
+read                show running-config router bgp 64496 | include neighbor
+read                show route vrf CUST-A 192.0.2.0/24
+read                admin show platform
+read        @config show
+read        @config show running-config interface Bundle-Ether1
+read        @config show commit changes diff
+read        @config do show bgp summary
+read        @config show configuration
+session             terminal length 0
+session             terminal width 0
+session             terminal exec prompt timestamp
+session     @config exit
+session     @config end
+session     @config pwd
+
+destructive         show running-config | file disk0:/backup.cfg
+config              configure
+config              configure exclusive
+config              conf t
+destructive         admin reload location all
+destructive         reload location 0/RSP0/CPU0
+destructive         clear bgp ipv4 unicast 192.0.2.1
+destructive         clear bgp ipv4 unicast * soft
+destructive         copy running-config tftp://198.51.100.10/r1.cfg
+destructive         rollback configuration last 1
+destructive         delete disk0:/old.cfg
+destructive         debug bgp update
+config      @config router bgp 64496
+config      @config commit
+config      @config commit confirmed 300
+destructive @config commit replace
+destructive @config no router bgp 64496
+destructive @config rollback configuration last 1
+destructive @config interface Bundle-Ether1 shutdown
+config      @config abort
+
+unknown             run ls
+unknown             show run | utility egrep bgp
+unknown             ping vrf CUST-A 192.0.2.1
+
+# --- regressions from code review
+destructive         show run > disk0:x
+
+# --- regressions from the second review
+destructive         show tech-support routing bgp file harddisk:/x
+destructive         show tech-support ethernet interfaces file harddisk:/a compressed
+read                show file information disk0:/x
+destructive         show tech-support cef comp
+destructive         show tech-support cef b
+destructive         show tech-support background
+destructive         admin show tech-support comp
+read                show tech-support cef

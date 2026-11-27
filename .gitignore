@@ -47,6 +47,7 @@ node_modules/
 
 # Claude Code (personal local settings)
 .claude/settings.local.json
+.claude/worktrees/
 .playwright-mcp/
 
 # OS / editors
