@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 secrets*
+*.sanitize-map*
 *.pem
 *.key
 *.kdbx
