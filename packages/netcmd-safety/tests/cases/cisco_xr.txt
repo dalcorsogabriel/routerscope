@@ -45,3 +45,8 @@ unknown             ping vrf CUST-A 192.0.2.1
 
 # --- regressions from code review
 destructive         show run > disk0:x
+
+# --- regressions from the second review
+destructive         show tech-support routing bgp file harddisk:/x
+destructive         show tech-support ethernet interfaces file harddisk:/a compressed
+read                show file information disk0:/x

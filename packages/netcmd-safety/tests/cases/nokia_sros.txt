@@ -70,3 +70,7 @@ destructive         show router >cf3:/x
 config              environment sav
 unknown             show router "bgp summary
 unknown             logout now
+
+# --- regressions from the second review: backslash escapes
+destructive         info \" > cf3:/x \"
+unknown             show router \"a | tee x\"

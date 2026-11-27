@@ -73,3 +73,7 @@ read        @config top show protocols
 unknown     @config edit delete interfaces
 unknown     @config exit foo
 unknown             show route "192.0.2.0
+
+# --- regressions from the second review: backslash escapes
+destructive         show configuration \" | save /var/x \"
+destructive         show configuration \"x > /var/x \"

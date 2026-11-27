@@ -19,9 +19,9 @@ from ._vendors.mikrotik import classify_routeros
 
 # A terminal executes on CR as well as LF.
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
-# Control characters (other than tab) edit the line on a pty: Ctrl-U kills it,
-# backspace and DEL erase, ESC starts sequences. What runs is not what we see.
-_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+# Control characters edit the line on a pty: Ctrl-U kills it, backspace and DEL erase,
+# ESC starts sequences, Tab completes the word. What runs is not what we see.
+_CONTROL = re.compile(r"[\x00-\x09\x0b-\x1f\x7f-\x9f]")
 
 
 def _check_vendor(vendor: str) -> None:

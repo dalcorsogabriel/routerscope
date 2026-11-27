@@ -135,7 +135,7 @@ READ_EXAMPLES = {
 
 
 @pytest.mark.parametrize("vendor", VENDORS)
-@given(spaces=st.lists(st.sampled_from([" ", "  ", "\t"]), min_size=4, max_size=4))
+@given(spaces=st.lists(st.sampled_from([" ", "  ", "   "]), min_size=4, max_size=4))
 def test_whitespace_invariance(vendor: str, spaces: list[str]) -> None:
     words = READ_EXAMPLES[vendor].split(" ")
     padded = spaces[0] + "".join(w + s for w, s in zip(words, spaces[1:] * 3, strict=False))
@@ -166,6 +166,7 @@ CONTROL_TRICKS = [
     "show version" + "\x08" * 12 + "reload",
     "show version\x7f\x7freload",
     "show version\x1b[Areload",
+    "show ver\tsion",  # Tab triggers completion
     "show" + chr(0xA0) + "version",  # non-breaking space
     "show ver" + chr(0x212A) + "ion",  # Kelvin sign lookalike
 ]

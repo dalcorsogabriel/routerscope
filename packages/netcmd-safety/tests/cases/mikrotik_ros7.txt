@@ -57,10 +57,27 @@ unknown             /system backup save pr
 unknown             /system/backup/save print
 unknown             /system backup load ex
 unknown             /tool/sniffer/start get
-unknown             /tool fetch url=http://x dst-path=a get
+destructive         /tool fetch url=http://x dst-path=a get
 unknown             /system/"reboot" print
 destructive         /ip address print \"; /system reboot; \"
 unknown             /ip address print \
 read                /ip address print count-only
 read                /routing/bgp/connection/print detail where name="UPLINK-1"
 unknown             /ip address print append
+
+# --- regressions from the second review: abbreviated parameters and `where`
+destructive         /ip address print fi=x
+destructive         /ip address print fil=x
+destructive         /ip address print f=x
+destructive         /export fi=x
+destructive         /ip address export fi=x
+destructive         /ip address print where disabled=no file=x
+destructive         /ip address print where x=1 fi=y
+destructive         /ip address print "file"=x
+unknown             /ip address print pro=address
+read                /ip address print proplist=address,interface
+read                /ip address print where address=192.0.2.1/24
+read                /ip address print where address in 192.0.2.0/24 and !disabled
+read                /log print where topics~"bgp" and message~"down"
+read                /interface monitor-traffic ether1 once
+unknown             /ip address print where (address=192.0.2.1/24

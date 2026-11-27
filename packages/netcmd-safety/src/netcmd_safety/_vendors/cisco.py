@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from .._engine import (
     CONFIG,
     DESTRUCTIVE,
@@ -43,8 +45,19 @@ _WRITE = Node(
     default=Verdict.CONFIG,
 )
 
+
+def _show_args(rest: Sequence[str]) -> Verdict | None:
+    """`show tech-support ... file <path>` (and `compressed`) writes to the device disk."""
+    tech = bool(rest) and len(rest[0]) >= 3 and "tech-support".startswith(rest[0])
+    if tech and any(":" in w or w == "compressed" or "file".startswith(w) for w in rest[1:]):
+        return Verdict.DESTRUCTIVE
+    return None
+
+
+_SHOW = Node(verdict=Verdict.READ, min_abbrev=2, handler=_show_args)
+
 _COMMON_EXEC: dict[str, Node] = {
-    "show": leaf(Verdict.READ, min_abbrev=2),
+    "show": _SHOW,
     "terminal": _TERMINAL,
     "configure": _CONFIGURE,
     "write": _WRITE,
@@ -106,7 +119,7 @@ XR = VendorSpec(
     },
     config_table={
         **_COMMON_CONFIG,
-        "show": READ,
+        "show": _SHOW,
         "pwd": SESSION,
         "commit": Node(
             verdict=Verdict.CONFIG, children={"replace": DESTRUCTIVE}, default=Verdict.CONFIG

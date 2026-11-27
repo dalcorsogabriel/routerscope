@@ -180,15 +180,18 @@ def _has_destructive_words(words: Sequence[str], spec: VendorSpec) -> bool:
     return any((a, b) in spec.destructive_pairs for a, b in pairwise(words))
 
 
-def _words(text: str, spec: VendorSpec) -> list[str]:
-    return [t.text if t.quoted else t.text.lower() for t in tokenize(text, quotes=spec.quotes)]
+def _words(text: str, quotes: bool) -> list[str]:
+    return [t.text if t.quoted else t.text.lower() for t in tokenize(text, quotes=quotes)]
 
 
 def classify_tree(command: str, mode: Mode | None, spec: VendorSpec) -> Result:
     """Classify one command line with a vendor's keyword trees."""
-    q = spec.quotes
+    # A backslash may escape a quote, so quotes cannot be trusted to hide `|` or `>`:
+    # read the line as if quotes did not exist, and never call it read.
+    escaped = spec.quotes and "\\" in command
+    q = spec.quotes and not escaped
     segments = split_unquoted(command, "|", quotes=q)
-    main_words = _words(segments[0], spec)
+    main_words = _words(segments[0], q)
     if not main_words:
         if len(segments) > 1:
             return Result(Verdict.UNKNOWN, "pipe without a command", mode)
@@ -197,7 +200,7 @@ def classify_tree(command: str, mode: Mode | None, spec: VendorSpec) -> Result:
     # Output redirection writes a file: any unquoted `>` in the command itself, or a
     # pipe argument that starts with `>` (pipe arguments are often regexes like `\*>`).
     if has_unquoted(segments[0], ">", quotes=q) or any(
-        w.startswith(">") for seg in segments[1:] for w in _words(seg, spec)
+        w.startswith(">") for seg in segments[1:] for w in _words(seg, q)
     ):
         return Result(Verdict.DESTRUCTIVE, "output redirected to a file", mode)
 
@@ -207,12 +210,15 @@ def classify_tree(command: str, mode: Mode | None, spec: VendorSpec) -> Result:
     verdicts.append(main.verdict)
     reasons.append(main.reason)
 
-    if q and not balanced_quotes(command):
+    if escaped:
+        verdicts.append(Verdict.UNKNOWN)
+        reasons.append("backslash escape")
+    elif q and not balanced_quotes(command):
         verdicts.append(Verdict.UNKNOWN)
         reasons.append("unbalanced quotes")
 
     for seg in segments[1:]:
-        pwords = _words(seg, spec)
+        pwords = _words(seg, q)
         if not pwords:
             verdicts.append(Verdict.UNKNOWN)
             reasons.append("empty pipe")

@@ -91,3 +91,5 @@ session             enable 15
 unknown             exit now
 config      @config enable secret x
 unknown     @config end now
+destructive         show tech-support file flash:tech.txt
+read                show file systems
