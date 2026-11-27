@@ -156,3 +156,10 @@ def test_same_interface_symmetric(a: str, b: str, vendor: str | None) -> None:
 def test_aliases_are_same_interface(name: str, vendor: str | None) -> None:
     for alias in interface_aliases(name, vendor):
         assert same_interface(alias, name, vendor)
+
+
+def test_unknown_family_tengige_matches_short_form() -> None:
+    # Regression: Hypothesis found same_interface("te0", "TenGigE0") was False.
+    assert same_interface("te0", "TenGigE0")
+    assert same_interface("TenGigabitEthernet0/1", "TenGigE0/1")
+    assert not same_interface("TenGigE0/1", "TenGigE0/2")

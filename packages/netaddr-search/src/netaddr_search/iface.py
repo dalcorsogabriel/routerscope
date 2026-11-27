@@ -219,4 +219,13 @@ def interface_aliases(name: str, vendor: str | None = None) -> frozenset[str]:
 
 def same_interface(a: str, b: str, vendor: str | None = None) -> bool:
     """True when ``a`` and ``b`` name the same interface (case-insensitive, short/long forms)."""
-    return normalize_interface(a, vendor).casefold() == normalize_interface(b, vendor).casefold()
+    return _match_key(a, vendor) == _match_key(b, vendor)
+
+
+def _match_key(name: str, vendor: str | None) -> str:
+    """Comparison key. Without a vendor, ``Te`` may be IOS ``TenGigabitEthernet`` or XR
+    ``TenGigE``, so both long names fold to the same key."""
+    key = normalize_interface(name, vendor).casefold()
+    if vendor is None and key.startswith("tengige") and not key.startswith("tengigabit"):
+        key = "tengigabitethernet" + key[len("tengige") :]
+    return key
