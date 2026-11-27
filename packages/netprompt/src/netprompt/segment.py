@@ -50,7 +50,22 @@ def _detect_all(lines: list[str]) -> dict[int, tuple[Prompt, str]]:
         for i, (prompt, _) in list(detections.items()):
             if prompt.vendor == HUAWEI_VRP and prompt.hostname is None:
                 detections[i] = detect_prompt(lines[i], known_hostnames=known) or detections[i]
-    return detections
+    return _guard_unseen(detections)
+
+
+def _guard_unseen(detections: dict[int, tuple[Prompt, str]]) -> dict[int, tuple[Prompt, str]]:
+    """Drop Cisco/VRP-shaped prompts with no command and an unseen hostname mid-output."""
+    seen: set[str] = set()
+    kept: dict[int, tuple[Prompt, str]] = {}
+    for i in sorted(detections):
+        prompt, command = detections[i]
+        weak = prompt.vendor in (None, HUAWEI_VRP)
+        if weak and not command and kept and prompt.hostname not in seen:
+            continue
+        kept[i] = (prompt, command)
+        if prompt.hostname:
+            seen.add(prompt.hostname)
+    return kept
 
 
 def segment(text: str, *, vendor: str | None = None) -> list[Segment]:
@@ -70,11 +85,28 @@ def segment(text: str, *, vendor: str | None = None) -> list[Segment]:
         if prompt.vendor:
             scores[prompt.vendor] += 1
 
+    order = sorted(detections)
+    device_text: dict[str, list[str]] = {}
+    for n, idx in enumerate(order):
+        host = detections[idx][0].hostname
+        if host:
+            end = order[n + 1] if n + 1 < len(order) else len(lines)
+            device_text.setdefault(host, []).extend(lines[idx:end])
+    device_scores: dict[str, Counter[str]] = {}
+
     consumed: set[int] = set()
     prompts: dict[int, Prompt] = {}
     for idx, (prompt, _) in detections.items():
         if prompt.vendor is None:
-            prompt = replace(prompt, vendor=_pick_vendor(prompt.candidates, vendor, scores))
+            picked: str | None = None
+            host = prompt.hostname
+            if host and vendor is None:
+                if host not in device_scores:
+                    device_scores[host] = fingerprint_scores("\n".join(device_text[host]))
+                picked = _pick_vendor(prompt.candidates, None, device_scores[host])
+            if picked is None:
+                picked = _pick_vendor(prompt.candidates, vendor, scores)
+            prompt = replace(prompt, vendor=picked)
         j = idx - 1
         while j >= 0 and j not in detections and idx - j <= _MAX_BANNER_LINES:
             banner = parse_banner(lines[j])
@@ -89,7 +121,6 @@ def segment(text: str, *, vendor: str | None = None) -> list[Segment]:
             j -= 1
         prompts[idx] = prompt
 
-    order = sorted(detections)
     result: list[Segment] = []
     for n, idx in enumerate(order):
         end = order[n + 1] if n + 1 < len(order) else len(lines)

@@ -213,3 +213,35 @@ def test_banners(line: str) -> None:
 @pytest.mark.parametrize("line", ["", "R1#", "[admin@R1] >", "[OK]", "[R1]", "edit"])
 def test_not_banners(line: str) -> None:
     assert not is_prompt_banner(line)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "[confirm]",
+        "[yes/no]",
+        "[Y/N]",
+        "[Y/N]:",
+        "[no]",
+        "[yes]",
+        "<name>x</name>",
+        "Total#5",
+        "Step#1: foo",
+        "10.0.0.1>x",
+        "192#",
+        "10.0.0.1#",
+    ],
+)
+def test_false_positive_prompts_rejected(line: str) -> None:
+    assert detect_prompt(line) is None
+
+
+def test_vrp_view_with_slash_still_prompt() -> None:
+    found = detect_prompt("[PE1-GigabitEthernet0/0/1] shutdown")
+    assert found is not None
+    assert found[1] == "shutdown"
+
+
+def test_junos_virtual_chassis_banner() -> None:
+    assert is_prompt_banner("{master:member0-re0}")
+    assert is_prompt_banner("{master:vc0-re0}")

@@ -48,3 +48,8 @@ def test_idempotent_on_tricky_input() -> None:
     raw = "--\x1b[0m-- More --\n---(more)\x08---\x1b[Km"
     once = normalize(raw)
     assert normalize(once) == once
+
+
+def test_non_csi_escapes_stripped() -> None:
+    assert normalize(f"{ESC}(B{ESC}=[admin@MikroTik] > ") == "[admin@MikroTik] > "
+    assert normalize(f"a{ESC})0b{ESC}7c{ESC}8{ESC}Md{ESC}c") == "abcd"

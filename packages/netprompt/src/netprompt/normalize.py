@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import re
 
-_ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+_ANSI = re.compile(
+    r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+    r"|\x1b[()][\x20-\x7e]|\x1b[=>78MDEHc]"
+)
 _CRLF = re.compile(r"\r+\n")
 
 # Devices erase a pagination prompt by moving the cursor back, overwriting with spaces and
@@ -59,7 +62,7 @@ def _normalize_once(text: str) -> str:
 def normalize(text: str) -> str:
     """Return ``text`` without terminal noise.
 
-    Removes ANSI CSI/OSC escape sequences, applies backspaces (``abc\\bd`` -> ``abd``) and bare
+    Removes ANSI CSI/OSC and two-byte escapes, applies backspaces (``abc\\bd`` -> ``abd``) and bare
     carriage-return overwrites, converts CRLF to LF and removes pagination prompts for Huawei,
     Cisco, Junos, RouterOS and SR OS together with the blank residue they leave. Everything else
     is kept byte-identical (trailing spaces of real output are preserved). Idempotent.

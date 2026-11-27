@@ -101,3 +101,36 @@ def test_segment_junos_banner_not_output() -> None:
     assert segs[0].output == "Entering"
     assert segs[1].prompt.context is None
     assert segs[1].output == "x"
+
+
+def test_confirm_line_does_not_split_output() -> None:
+    segs = segment("R1#show interfaces\nGigabitEthernet0/0 is up\n[confirm]\nsomething\nR1#")
+    assert len(segs) == 1
+    assert segs[0].output == "GigabitEthernet0/0 is up\n[confirm]\nsomething"
+
+
+def test_xml_and_unseen_empty_prompts_mid_output_are_output() -> None:
+    text = "R1#show x\n<rpc-reply>\n<configuration>\n[Local]\n</rpc-reply>\nR1#"
+    segs = segment(text)
+    assert len(segs) == 1
+    assert "<configuration>" in segs[0].output
+    assert "[Local]" in segs[0].output
+
+
+def test_known_hostname_empty_prompt_still_splits() -> None:
+    segs = segment("R1#show x\nfoo\nR1#\nR1#show y\nbar")
+    assert [s.command for s in segs] == ["show x", "show y"]
+
+
+def test_mikrotik_keypad_escape_prompt() -> None:
+    segs = segment("\x1b=[admin@MikroTik] > /system identity print\nname: x")
+    assert segs[0].prompt.vendor == MIKROTIK_ROS7
+
+
+def test_vendor_resolved_per_device() -> None:
+    text = (
+        "R1#show version\nCisco IOS XE Software, Version 17.3\n"
+        "R2#show version\nOcNOS version 6.5\nOcNOS\n"
+    )
+    segs = segment(text)
+    assert [s.prompt.vendor for s in segs] == [CISCO_IOS, IPINFUSION_OCNOS]

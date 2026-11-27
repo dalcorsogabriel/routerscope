@@ -59,19 +59,23 @@ _NOKIA_CLASSIC = re.compile(
 _ROS = re.compile(
     r"\[(?P<user>[^\s@\[\]]+)@(?P<host>[^\s\[\]]+)\] ?(?P<path>/[^\s<>]*)?(?:(?P<safe><SAFE>)|>)"
 )
-_VRP_EXEC = re.compile(r"<(?P<host>[A-Za-z][\w.\-]*)>")
+_VRP_EXEC = re.compile(r"<(?P<host>[A-Za-z][\w.\-]*)>(?!.*</)")
 _VRP_CFG = re.compile(r"\[(?P<flags>[~*]{0,2})(?P<name>[A-Za-z][\w.\-/]*)\]")
 _VRP_REJECT = frozenset(
     {"cr", "ok", "fail", "failed", "edit", "pass", "passed", "done", "info", "warn", "warning"}
     | {"error", "debug", "skip", "skipped"}
+    | {"confirm", "yes", "no", "y/n", "yes/no"}
 )
 _JUNOS = re.compile(
     r"(?P<user>[A-Za-z_][\w.\-]*)@(?P<host>[A-Za-z0-9][\w.\-]*)(?P<end>[>#])(?=\s|$)"
 )
-_CISCO = re.compile(r"(?P<host>[A-Za-z0-9][\w.\-]*)(?:\((?P<ctx>[^()\s]+)\))?(?P<end>[>#])")
+_CISCO = re.compile(
+    r"(?P<host>[A-Za-z0-9][\w.\-]*)(?:\((?P<ctx>[^()\s]+)\))?(?P<end>[>#])(?![\d:=])"
+)
+_NUMERIC_HOST = re.compile(r"[\d.]+")
 
 _JUNOS_EDIT = re.compile(r"\[edit(?: (?P<ctx>[^\]]*))?\]\s*$")
-_JUNOS_STATE = re.compile(r"\{[a-z]+(?::\w+)?\}\s*$")
+_JUNOS_STATE = re.compile(r"\{[a-z]+(?::[\w-]+)?\}\s*$")
 _MDCLI_A = re.compile(r"[*!]?\[(?:(?:ex|pr|gl|ro|in):)?(?P<path>/[^\]]*)\]\s*$")
 _MDCLI_B = re.compile(r"[*!]?\((?:ex|pr|gl|ro|in)\)\[(?P<path>/[^\]]*)\]\s*$")
 
@@ -198,7 +202,7 @@ def _match(line: str, known: Collection[str] | None) -> tuple[Prompt, int] | Non
     if m := _JUNOS.match(line):
         mode = Mode.CONFIG if m["end"] == "#" else Mode.EXEC
         return Prompt(m[0], m["host"], JUNIPER_JUNOS, (JUNIPER_JUNOS,), mode), m.end()
-    if m := _CISCO.match(line):
+    if (m := _CISCO.match(line)) and not _NUMERIC_HOST.fullmatch(m["host"]):
         mode, ctx = _cisco_mode(m["ctx"], m["end"])
         return Prompt(m[0], m["host"], None, _CISCO_LIKE, mode, ctx), m.end()
     return None
