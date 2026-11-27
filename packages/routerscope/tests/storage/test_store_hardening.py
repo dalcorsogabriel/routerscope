@@ -460,7 +460,7 @@ def test_plain_words_are_literal_terms(store: Store) -> None:
     assert store.search_text("route-policy GigabitEthernet") == []
 
 
-@pytest.mark.parametrize("bad", ['"a', "(abc", "abc)", "(abc AND def", '"abc" )', "a AND ((b)"])
+@pytest.mark.parametrize("bad", ['"abc', "(abc", "abc)", "(abc AND def", '"abc" )', "a AND ((b)"])
 def test_unbalanced_queries_rejected_on_every_sqlite(store: Store, bad: str) -> None:
     with pytest.raises(QuerySyntaxError):
         store.search_text(bad)
