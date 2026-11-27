@@ -6,11 +6,13 @@
 
 [![CI](https://github.com/dalcorsogabriel/routerscope/actions/workflows/ci.yml/badge.svg)](https://github.com/dalcorsogabriel/routerscope/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-![Status](https://img.shields.io/badge/status-pre--alpha-orange)
+![Status](https://img.shields.io/badge/status-experimental-orange)
 
 > **Works with any terminal:** Termius, PuTTY, SecureCRT, MobaXterm, Windows Terminal, OpenSSH, Tabby, iTerm. No terminal plugin needed.
 
-> ⚠️ **Pre-alpha.** The app is not usable yet. Three standalone libraries are ready to try from source: [`netcmd-safety`](packages/netcmd-safety), [`netprompt`](packages/netprompt) and [`netaddr-search`](packages/netaddr-search). Star/watch the repo, or pick a [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
+> ⚠️ **Experimental project.** routerscope is in an early, experimental phase and under active development. Commands, APIs and the database format may change without notice, and nothing has been validated against real devices at scale yet. Do not rely on it for production work.
+>
+> The app is not usable yet. Three standalone libraries can already be tried from source: [`netcmd-safety`](packages/netcmd-safety), [`netprompt`](packages/netprompt) and [`netaddr-search`](packages/netaddr-search). Star/watch the repo, or pick a [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Why
 
@@ -20,7 +22,7 @@ Network engineers lose minutes every day scrolling terminal history, grepping co
 
 ## What it will do
 
-- **Instant search** across configs, command outputs and history: free text, **IP/prefix containment** (`200.0.0.0/22` finds everything inside or covering it), MAC in any format, ASN, communities, VLAN, interface names normalized across vendors, policy/prefix-list/ACL/VRF names.
+- **Instant search** across configs, command outputs and history: free text, **IP/prefix containment** (`192.0.2.0/24` finds everything inside or covering it), MAC in any format, ASN, communities, VLAN, interface names normalized across vendors, policy/prefix-list/ACL/VRF names.
 - **Timeline and semantic diff**: compare outputs by natural key (peer, interface, prefix), ignoring counters, uptime and timestamps. Hierarchical config diff.
 - **"Where is it?"**: which devices/interfaces/VRFs an IP, MAC, VLAN or prefix shows up on.
 - **Winbox-like browser (read-first)** for every vendor, with click-through references, **where-used**, broken references and unused objects.

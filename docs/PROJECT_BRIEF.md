@@ -45,7 +45,7 @@ routerscope integrates with or depends on existing projects where licenses allow
 ## 4. Product
 
 ### Core features
-1. **Instant search** over configs, command outputs and history: free text; **IP/prefix containment** (`200.0.0.0/22` finds everything inside or covering it); MAC in any format; ASN; standard/large/extended communities; VLAN; interface names normalized across vendors; descriptions and circuit IDs; policy, prefix-list, ACL and VRF names; filters by device, vendor, command and time range.
+1. **Instant search** over configs, command outputs and history: free text; **IP/prefix containment** (`192.0.2.0/24` finds everything inside or covering it); MAC in any format; ASN; standard/large/extended communities; VLAN; interface names normalized across vendors; descriptions and circuit IDs; policy, prefix-list, ACL and VRF names; filters by device, vendor, command and time range.
 2. **Timeline and semantic diff.** "What did `display bgp peer` on R1 look like before last night's window?" Diff by natural key (peer, interface, prefix), ignoring counters, uptime and timestamps. Hierarchical config diff showing the parent block.
 3. **Locate ("Where is it?").** IP, MAC, VLAN or prefix → devices, interfaces and VRFs where it appears (config, ARP/ND, MAC table, routes), in the latest snapshot and over time.
 4. **Winbox-like browser (read-first).** Device tree → sections (Interfaces, IP, Routing/BGP peers, Policies, Prefix-lists, ACL/Firewall, VRFs, QoS, System) as filterable tables. References are clickable; **Where used** lists every user of an object; broken references and unused objects are flagged.

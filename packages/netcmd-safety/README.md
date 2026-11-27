@@ -1,6 +1,6 @@
 # netcmd-safety
 
-> Status: alpha. Part of [routerscope](https://github.com/dalcorsogabriel/routerscope).
+> **Experimental.** Early-stage library, part of [routerscope](https://github.com/dalcorsogabriel/routerscope). The API may change without notice before 1.0; pin the exact version if you depend on it.
 
 Small, dependency-free library that tells you whether a network CLI command is safe to send. It classifies a command as **read**, **session**, **config** or **destructive**, per vendor:
 
