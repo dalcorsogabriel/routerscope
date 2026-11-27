@@ -19,11 +19,20 @@ classifiers = [
     "Topic :: System :: Networking",
     "Typing :: Typed",
 ]
-dependencies = ["netcmd-safety", "netprompt", "netaddr-search"]
+dependencies = ["netcmd-safety", "netprompt", "netaddr-search", "pydantic>=2.9"]
 
 [project.urls]
 Homepage = "https://github.com/dalcorsogabriel/routerscope"
 Issues = "https://github.com/dalcorsogabriel/routerscope/issues"
+
+[project.entry-points."routerscope.vendors"]
+cisco_ios = "routerscope.vendors.cisco_ios:Plugin"
+cisco_xr = "routerscope.vendors.cisco_xr:Plugin"
+huawei_vrp = "routerscope.vendors.huawei_vrp:Plugin"
+juniper_junos = "routerscope.vendors.juniper_junos:Plugin"
+mikrotik_ros7 = "routerscope.vendors.mikrotik_ros7:Plugin"
+nokia_sros = "routerscope.vendors.nokia_sros:Plugin"
+ipinfusion_ocnos = "routerscope.vendors.ipinfusion_ocnos:Plugin"
 
 [build-system]
 requires = ["hatchling>=1.26"]
