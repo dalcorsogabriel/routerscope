@@ -6,7 +6,7 @@
 
 > **Funciona con cualquier terminal:** Termius, PuTTY, SecureCRT, MobaXterm, Windows Terminal, OpenSSH, Tabby, iTerm. Sin plugins de terminal.
 
-> ⚠️ **Pre-alpha.** Todavía no hay nada utilizable. Sigue el repositorio o toma un [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
+> ⚠️ **Pre-alpha.** La aplicación todavía no es utilizable. Tres bibliotecas independientes ya se pueden probar desde el código fuente: [`netcmd-safety`](packages/netcmd-safety), [`netprompt`](packages/netprompt) y [`netaddr-search`](packages/netaddr-search). Sigue el repositorio o toma un [good first issue](https://github.com/dalcorsogabriel/routerscope/issues?q=is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Por qué
 

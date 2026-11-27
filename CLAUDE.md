@@ -35,17 +35,19 @@ Python 3.12+, uv workspace, hatchling, ruff, mypy --strict, pytest + hypothesis,
 - `contexto/`: maintainer's private reference material, git-ignored except README. Read it, never delete it, never copy it to `fixtures/` unsanitized.
 
 ## Workflow (Phase 1+)
-Feature branch → small Conventional Commits → PR to `main` (even solo) → CI green → merge; close issues via PR; update CHANGELOG and docs per feature; ADR for significant decisions.
+Feature branch → small Conventional Commits → PR to `main` (even solo) → CI green → merge **locally** (`git merge --no-ff <branch>`, then `git push origin main`; never the GitHub merge button or `gh pr merge`, which author commits with the profile's real name); close issues via PR; update CHANGELOG and docs per feature; ADR for significant decisions.
 
 ## Decisions
 - ADR 0001 (ADRs), ADR 0002 (license, uv workspace, tooling).
 - Public visibility is switched by the maintainer by hand (a local safety hook blocks it for Claude).
-- Commits use the repo-local identity `dalcorsogabriel` + GitHub noreply e-mail (no real name).
+- Commits use the repo-local identity `dalcorsogabriel` + GitHub noreply e-mail (no real name). Check `git log --format='%an %cn'` before every push.
+- `netcmd-safety` is allowlist-based and fails closed: control characters (Tab included), non-ASCII lookalikes and backslashes are never safe; RouterOS reads need known menus, a read verb and exact-name parameters. Cases are from documented CLI behaviour, not real devices yet.
+- Long-running reads (`print follow`, `monitor` without `once`) are classified read; the collector must enforce its own timeout.
 
 ## Current state
-Phase 0 done: scaffolding, CI, docs, community files, labels, milestones v0.1–v0.6, backlog epics and good first issues. No product code yet.
+Phase 0 done. Phase 1 Step 1 done: `netcmd-safety`, `netprompt` and `netaddr-search` merged (PRs #94–#96), 1600+ tests, three security review rounds on `netcmd-safety`. Repo is private until the maintainer flips it public. The `routerscope` app package is still a skeleton.
 
 ## Next steps
-1. Phase 1: write `docs/plans/v0.1.md`, then implement in order: netcmd-safety → netprompt → netaddr-search → storage/model → importers → parsers → search/diff/locate → CLI → minimal UI → benchmarks → docs → v0.1.0.
+1. Phase 1 Step 2 (`docs/plans/v0.1.md`): model, storage (SQLite FTS5), fixture sanitizer, vendor plugin protocol. Then importers → parsers → search/diff/locate → CLI → minimal UI → benchmarks → docs → v0.1.0.
 2. Ask the maintainer for real device outputs via `contexto/`; sanitize before committing.
 3. ADRs pending: web UI framework (Svelte vs HTMX), release tooling.
