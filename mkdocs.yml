@@ -27,6 +27,8 @@ nav:
   - Architecture: architecture.md
   - Storage: storage.md
   - Roadmap: roadmap.md
+  - Importers:
+      - importers-git.md
   - Guides:
       - guides/add-a-vendor.md
   - Decisions:
