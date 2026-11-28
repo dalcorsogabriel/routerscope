@@ -224,3 +224,29 @@ def test_policy_term_ref_must_match_snapshot(ref: SourceRef) -> None:
     policy = Policy(ref=ref, name="P", terms=(PolicyTerm(name="10", ref=other),))
     with pytest.raises(ValidationError, match="ref points at snapshot"):
         ParsedConfig(snapshot_id=ref.snapshot_id, policies=(policy,))
+
+
+def test_arp_entry_normalizes(ref: SourceRef) -> None:
+    from routerscope.model import ARPEntry
+
+    e = ARPEntry(
+        ref=ref, ip="192.0.2.1", mac="0000.5E00.5301", interface="Gi0/1", vendor="cisco_ios"
+    )
+    assert e.mac == "00:00:5e:00:53:01"
+    assert e.interface_normalized == "GigabitEthernet0/1"
+    roundtrip(e)
+    with pytest.raises(ValidationError):
+        ARPEntry(ref=ref, ip="192.0.2.1", mac="nonsense")
+
+
+def test_mac_entry_roundtrip_and_union(ref: SourceRef) -> None:
+    from routerscope.model import MACEntry
+
+    e = MACEntry(ref=ref, mac="00-00-5e-00-53-01", vlan=10, entry_type="dynamic", domain="BD1")
+    assert e.mac == "00:00:5e:00:53:01"
+    result = ParseResult(snapshot_id=ref.snapshot_id, command="show mac", objects=(e,))
+    assert ParseResult.model_validate_json(result.model_dump_json()) == result
+    with pytest.raises(ValidationError):
+        MACEntry(ref=ref, mac="00:00:5e:00:53:01", vlan=5000)
+    with pytest.raises(ValidationError):
+        MACEntry(ref=ref, mac="00:00:5e:00:53:01", entry_type="weird")  # type: ignore[arg-type]
