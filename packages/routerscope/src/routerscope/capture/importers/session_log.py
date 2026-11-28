@@ -16,6 +16,10 @@ Formats (``Source.importer`` carries the id):
 * ``plain``: no timestamps. Plain exports of Windows Terminal, Tabby, iTerm, Termius,
   MobaXterm or SecureCRT (ANSI is stripped).
 
+A command that displays the **whole** configuration (see :func:`is_full_config_command`) also
+yields a ``config`` item with the same hostname, vendor, time and command, next to its
+``command_output`` item.
+
 Detection looks at the first lines (header first, then the majority line prefix); force a
 format with ``format=``. The aliases ``windows_terminal``, ``tabby``, ``iterm`` and ``termius``
 mean ``plain``. Forcing a format whose prefix is absent from the file is harmless.
@@ -56,6 +60,7 @@ __all__ = [
     "ParsedLog",
     "SessionLogImporter",
     "detect_format",
+    "is_full_config_command",
     "parse_session_log",
     "session_items",
 ]
@@ -232,6 +237,58 @@ def parse_session_log(
     return ParsedLog(chosen, content, segments, first or default, times)
 
 
+_CISCO_LIKE = frozenset({"cisco_ios", "cisco_xr", "ipinfusion_ocnos"})
+
+
+def _abbrev(token: str, word: str, minimum: int) -> bool:
+    """True when ``token`` is ``word`` typed with at least ``minimum`` leading characters."""
+    return len(token) >= minimum and word.startswith(token)
+
+
+def is_full_config_command(command: str, vendor: str | None = None) -> bool:
+    """True if ``command`` prints a device's complete configuration.
+
+    Recognised (case-insensitive, abbreviations as typed; ``vendor`` ``None`` accepts any
+    vendor that uses the form):
+
+    * IOS / IOS-XE / XR / OcNOS: ``show running-config`` (``show run``, ``sh run``...). Any
+      argument or pipe (``interface X``, ``| include``, ``| section``, ``| begin``...) makes it
+      a partial view, so it does not match.
+    * VRP: ``display current-configuration`` (``dis cur``...), no arguments.
+    * Junos: ``show configuration`` (``show conf``), optionally piped to ``display set`` and/or
+      ``no-more``; hierarchy arguments or other pipes do not match. Not for XR, where the same
+      words show uncommitted changes.
+    * SR OS classic: ``admin display-config``; MD-CLI: ``admin show configuration``. (``info``
+      at the root context is not recognised: the context cannot be told reliably.)
+    * RouterOS: ``/export`` with any of ``compact``, ``terse``, ``verbose``, ``hide-sensitive``
+      or ``show-sensitive``; not ``file=...`` (nothing is printed) and not ``/ip address export``.
+    """
+    base, *pipes = (part.strip().lower() for part in command.split("|"))
+    words = base.split()
+    if not words:
+        return False
+    if words[0] == "/export":
+        ok = {"compact", "terse", "verbose", "hide-sensitive", "show-sensitive"}
+        return not pipes and all(w in ok for w in words[1:]) and vendor in (None, "mikrotik_ros7")
+    if len(words) == 2 and _abbrev(words[0], "show", 2) and _abbrev(words[1], "running-config", 3):
+        return not pipes and vendor in (None, *_CISCO_LIKE)
+    if (
+        len(words) == 2
+        and _abbrev(words[0], "display", 3)
+        and _abbrev(words[1], "current-configuration", 3)
+    ):
+        return not pipes and vendor in (None, "huawei_vrp")
+    if len(words) == 2 and _abbrev(words[0], "show", 2) and _abbrev(words[1], "configuration", 4):
+        allowed = all(p in ("display set", "no-more") for p in pipes)
+        return allowed and vendor in (None, "juniper_junos")
+    if words[0] == "admin" and not pipes:
+        if len(words) == 2 and words[1] == "display-config":
+            return vendor in (None, "nokia_sros")
+        if len(words) == 3 and words[1] == "show" and words[2] == "configuration":
+            return vendor in (None, "nokia_sros")
+    return False
+
+
 def session_items(parsed: ParsedLog, source: Source) -> Iterator[ImportItem]:
     """The ``session`` item followed by one ``command_output`` item per command with output."""
     devices = Counter(seg.device for seg in parsed.segments if seg.device)
@@ -257,6 +314,16 @@ def session_items(parsed: ParsedLog, source: Source) -> Iterator[ImportItem]:
             vendor=seg.prompt.vendor,
             command=command,
         )
+        if is_full_config_command(command, seg.prompt.vendor):
+            yield ImportItem(
+                content=seg.output,
+                kind="config",
+                captured_at=when,
+                source=source,
+                hostname=seg.device,
+                vendor=seg.prompt.vendor,
+                command=command,
+            )
 
 
 def read_log_file(path: Path, tz: tzinfo | None) -> tuple[str, datetime]:

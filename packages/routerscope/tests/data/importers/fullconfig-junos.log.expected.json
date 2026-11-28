@@ -1,0 +1,47 @@
+[
+  {
+    "kind": "session",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": null,
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "user@PE1> show configuration | display set"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show configuration | display set",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "set system host-name PE1"
+  },
+  {
+    "kind": "config",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show configuration | display set",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "set system host-name PE1"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show configuration interfaces",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "lo0 {"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show configuration | match host-name",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "host-name PE1;"
+  }
+]

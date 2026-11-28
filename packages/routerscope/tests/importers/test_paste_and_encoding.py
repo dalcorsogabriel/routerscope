@@ -145,3 +145,13 @@ def test_end_to_end_ingest_and_search(stage: Stage, redactor: Redactor) -> None:
         assert hits[0].hostname == "R1"
         assert hits[0].captured_at == datetime(2026, 1, 5, 10, 22, 11, tzinfo=TZ)
         assert store.search_text("Established", kind="session")
+
+
+def test_full_config_is_stored_and_searchable_as_config(stage: Stage, redactor: Redactor) -> None:
+    path = stage("fullconfig-vrp.log")
+    with Store.open(":memory:", redactor=redactor) as store:
+        report = ingest(store, SessionLogImporter(path, tz=TZ).items())
+        assert report.errors == []
+        hits = store.search_text("LoopBack0", kind="config")
+        assert hits
+        assert hits[0].hostname == "R1"

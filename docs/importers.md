@@ -15,6 +15,20 @@ Commands with no output (for example `ip route ...` in config mode) stay in the 
 
 `Source` is `Source(kind="session_log", uri=<path>, importer=<format id>)`.
 
+### Full-config commands
+
+When a command displays the whole configuration, a `config` item (same hostname, vendor, time and command, content = the output without echo or pagination) is yielded in addition to its `command_output` item. Recognised, case-insensitive, abbreviations as typed (minimum prefixes in parentheses):
+
+| Vendor | Command | Not promoted |
+|---|---|---|
+| IOS, IOS-XE, XR, OcNOS | `show running-config` (`sh run`, `show run`) | any argument or pipe: `show run interface X`, `\| include`, `\| section`, `\| begin`, `\| exclude` |
+| Huawei VRP | `display current-configuration` (`dis cur`) | any argument or pipe |
+| Junos | `show configuration`, optionally `\| display set` and/or `\| no-more` | hierarchy arguments, other pipes (`\| match`) |
+| Nokia SR OS | `admin display-config` (classic), `admin show configuration` (MD-CLI) | any argument or pipe |
+| MikroTik RouterOS | `/export` with `compact`, `terse`, `verbose`, `hide-sensitive`, `show-sensitive` | `/ip address export`, `file=...`, pipes |
+
+The detected vendor must also match the form (for example `show configuration` on XR shows uncommitted changes and is not promoted). The check is `is_full_config_command(command, vendor)`.
+
 ### Formats
 
 | Id | What it is | Detected by |
@@ -60,7 +74,7 @@ Use `kind=` to skip the guessing. `captured_at` defaults to now. `Source(kind="p
 
 ```python
 folder = DropFolder("~/routerscope-drop")
-ingest(store, folder.items())          # new or changed files, once
+ingest(store, folder.items())  # new or changed files, once
 folder.watch(lambda items: ingest(store, items), interval=2.0, stop_event=stop)
 ```
 
@@ -74,4 +88,4 @@ folder.watch(lambda items: ingest(store, items), interval=2.0, stop_event=stop)
 - A file whose size and modification time are both unchanged is assumed unchanged (the SHA-256 is only compared when one of them differs).
 - Old-style `script` headers (`Script started on Mon Jan  5 ...`) are removed but carry no timestamp.
 - Logs from terminals that put the date on a separate line, or use `[%H:%M:%S.%f]` style stamps, are treated as `plain` unless the format is forced to one with a matching prefix.
-- `show running-config` style outputs are stored as `command_output`, not `config`.
+- MD-CLI `info` at the root context is not promoted to a `config` item (the context cannot be told reliably).

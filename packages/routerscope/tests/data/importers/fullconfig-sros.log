@@ -1,0 +1,10 @@
+A:PE1# admin display-config
+# TiMOS-B-23.3.R1 both/x86_64 Nokia 7750 SR
+configure
+    system
+        name "PE1"
+    exit
+exit all
+A:PE1# info
+# nothing special
+A:PE1#

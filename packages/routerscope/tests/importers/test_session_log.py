@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from routerscope.capture.importers import SessionLogImporter, detect_format
 from routerscope.capture.importers.base import ImportError_, ImportItem
-from routerscope.capture.importers.session_log import parse_session_log
+from routerscope.capture.importers.session_log import is_full_config_command, parse_session_log
 
 TZ = timezone(timedelta(hours=2))  # not UTC, so zone handling is exercised
 MTIME = 1_767_700_000
@@ -172,3 +172,104 @@ def test_detect_format_edge_cases() -> None:
     assert detect_format("\n\n") == "plain"
     assert detect_format("[10:00:00] a\nb\nc\nd\n") == "plain"  # minority prefix
     assert detect_format("[10:00:00] a\n[10:00:01] b\nc\n") == "mobaxterm"
+
+
+FULLCONFIG = {
+    "fullconfig-ios.log": ("cisco_ios", ["show run"]),
+    "fullconfig-vrp.log": ("huawei_vrp", ["dis cur"]),
+    "fullconfig-junos.log": ("juniper_junos", ["show configuration | display set"]),
+    "fullconfig-ros7.log": ("mikrotik_ros7", ["/export terse"]),
+    "fullconfig-sros.log": ("nokia_sros", ["admin display-config"]),
+}
+
+
+@pytest.mark.parametrize(("name", "expected"), FULLCONFIG.items())
+def test_full_config_commands_also_yield_a_config_item(
+    name: str,
+    expected: tuple[str, list[str]],
+    stage: Stage,
+    check_golden: Callable[..., None],
+) -> None:
+    vendor, commands = expected
+    items = load(stage(name))
+    configs = [i for i in items if i.kind == "config"]
+    assert [c.command for c in configs] == commands
+    assert configs[0].vendor == vendor
+    twin = next(i for i in items if i.kind == "command_output" and i.command == commands[0])
+    assert (configs[0].content, configs[0].hostname, configs[0].captured_at) == (
+        twin.content,
+        twin.hostname,
+        twin.captured_at,
+    )
+    assert commands[0] not in str(configs[0].content)  # no command echo
+    assert "More" not in str(configs[0].content)
+    check_golden(items, name)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "show running-config",
+        "show run",
+        "sh run",
+        "SHOW RUN",
+        "show  running-config ",
+        "show runn",
+        "display current-configuration",
+        "dis cur",
+        "display cur",
+        "show configuration",
+        "show configuration | display set",
+        "show configuration | display set | no-more",
+        "show conf | no-more",
+        "admin display-config",
+        "admin show configuration",
+        "/export",
+        "/export compact",
+        "/export verbose terse",
+    ],
+)
+def test_is_full_config_command_positive(command: str) -> None:
+    assert is_full_config_command(command)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "",
+        "show run interface Gi0/0",
+        "show run | include hostname",
+        "show run | section bgp",
+        "show running-config | begin router",
+        "show running-config | exclude !",
+        "s run",
+        "show ru",
+        "dis cur interface",
+        "display current-configuration | include sysname",
+        "display version",
+        "show configuration interfaces",
+        "show configuration | match x",
+        "show configuration | display set | count",
+        "show version",
+        "admin display-config | match x",
+        "admin show version",
+        "admin display-config x",
+        "/ip address export",
+        "/export file=backup",
+        "/export | grep x",
+        "info",
+    ],
+)
+def test_is_full_config_command_negative(command: str) -> None:
+    assert not is_full_config_command(command)
+
+
+def test_full_config_vendor_guard() -> None:
+    assert not is_full_config_command("show configuration", "cisco_xr")
+    assert is_full_config_command("show configuration", "juniper_junos")
+    assert not is_full_config_command("show run", "huawei_vrp")
+    assert not is_full_config_command("dis cur", "cisco_ios")
+    assert not is_full_config_command("/export", "cisco_ios")
+    assert not is_full_config_command("admin display-config", "cisco_ios")
+    assert not is_full_config_command("admin show configuration", "cisco_ios")
+    assert is_full_config_command("show run", "cisco_xr")
