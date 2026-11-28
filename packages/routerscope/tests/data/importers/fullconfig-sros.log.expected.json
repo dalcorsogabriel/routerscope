@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "session",
+    "hostname": "PE1",
+    "vendor": "nokia_sros",
+    "command": null,
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "A:PE1# admin display-config"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "nokia_sros",
+    "command": "admin display-config",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "# TiMOS-B-23.3.R1 both/x86_64 Nokia 7750 SR"
+  },
+  {
+    "kind": "config",
+    "hostname": "PE1",
+    "vendor": "nokia_sros",
+    "command": "admin display-config",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "# TiMOS-B-23.3.R1 both/x86_64 Nokia 7750 SR"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "nokia_sros",
+    "command": "info",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "# nothing special"
+  }
+]

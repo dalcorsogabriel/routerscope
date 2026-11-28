@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "session",
+    "hostname": "PE1",
+    "vendor": "cisco_xr",
+    "command": null,
+    "captured_at": "2026-01-05T10:22:01.123000+00:00",
+    "importer": "iso",
+    "first_line": "RP/0/RSP0/CPU0:PE1#show bgp ipv4 unicast summary"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "cisco_xr",
+    "command": "show bgp ipv4 unicast summary",
+    "captured_at": "2026-01-05T10:22:01.123000+00:00",
+    "importer": "iso",
+    "first_line": "BGP router identifier 198.51.100.10, local AS number 64496"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "cisco_xr",
+    "command": "show version",
+    "captured_at": "2026-01-05T10:22:09.500000+00:00",
+    "importer": "iso",
+    "first_line": "Cisco IOS XR Software, Version 7.9.2"
+  }
+]

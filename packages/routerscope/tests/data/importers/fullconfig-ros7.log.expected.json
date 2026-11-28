@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": null,
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "[admin@R1] > /export terse"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": "/export terse",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "# 2026-01-05 10:22:01 by RouterOS 7.14.3"
+  },
+  {
+    "kind": "config",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": "/export terse",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "# 2026-01-05 10:22:01 by RouterOS 7.14.3"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": "/ip address export",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "/ip address"
+  }
+]
