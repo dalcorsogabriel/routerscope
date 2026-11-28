@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from routerscope.model import VLAN, VRF, Device, ParsedConfig, PrefixListEntry, Snapshot
+from routerscope.model import VLAN, VRF, Device, ParsedConfig, Snapshot
 from routerscope.vendors._extract import (
     Builder,
     PeerBook,
+    PrefixTable,
     add_prefix_lists,
     apply_interface_vrfs,
     make,
@@ -27,8 +28,9 @@ def parse_vrp(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     root = parse_indented(text, "vrp")
     b = Builder(snapshot, vendor)
     book = PeerBook()
-    prefixes: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]] = {}
+    prefixes = PrefixTable()
     iface_vrf: dict[str, str] = {}
+    ifaces: dict[str, list[ConfigNode]] = {}
     for node in root.children:
         w = node.words
         if not w:
@@ -36,10 +38,11 @@ def parse_vrp(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         if w[0] == "sysname" and len(w) >= 2 and b.device is None:
             b.device = make(Device, ref=b.ref(node), hostname=w[1])
         elif w[0] == "interface" and len(w) >= 2:
-            _interface(b, node, iface_vrf)
+            ifaces.setdefault(_iface_name(w), []).append(node)
         elif w[:2] == ["ip", "vpn-instance"] and len(w) == 3:
             _vrf(b, node, w[2])
         elif w[0] == "bgp" and len(w) >= 2 and to_asn(w[1]) is not None:
+            book.default_local_as = to_asn(w[1])
             _bgp(book, node)
         elif w[0] in ("ip", "ipv6") and len(w) >= 4 and w[1] == "route-static":
             _static(b, node, w)
@@ -49,6 +52,8 @@ def parse_vrp(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
             _vlan_batch(b, node, w[2:])
         elif w[0] == "vlan" and len(w) == 2:
             _vlan(b, node, w[1])
+    for iface_name, iface_nodes in ifaces.items():
+        _interface(b, iface_nodes, iface_name, iface_vrf)
     book.emit(b)
     add_prefix_lists(b, prefixes)
     apply_interface_vrfs(b, iface_vrf)
@@ -59,16 +64,20 @@ def parse_vrp(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     return b.build()
 
 
-def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
-    name = rest(node.text, 1)
-    if name is None:
-        return
+def _iface_name(words: list[str]) -> str:
+    """Interface name: the first word after ``interface`` (mode words may follow)."""
+    if words[1] == "preconfigure" and len(words) > 2:
+        return words[2]
+    return words[1]
+
+
+def _interface(b: Builder, nodes: list[ConfigNode], name: str, iface_vrf: dict[str, str]) -> None:
     description: str | None = None
     enabled = True
     mtu: int | None = None
     vrf: str | None = None
     addresses = []
-    for child in node.children:
+    for child in (c for node in nodes for c in node.children):
         cw = child.words
         if not cw:
             continue
@@ -85,10 +94,14 @@ def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
         elif cw[:2] == ["ip", "address"] and len(cw) >= 3:
             mask = cw[3] if len(cw) > 3 and cw[3] != "sub" else None
             addresses.append((child, parse_iface_addr(cw[2], mask), "sub" in cw[3:]))
-        elif cw[:2] == ["ipv6", "address"] and len(cw) >= 3 and "link-local" not in cw:
+        elif (
+            cw[:2] == ["ipv6", "address"]
+            and len(cw) >= 3
+            and not {"eui-64", "link-local"} & set(cw[3:])
+        ):
             mask = cw[3] if len(cw) > 3 and to_int(cw[3]) is not None else None
             addresses.append((child, parse_iface_addr(cw[2], mask), False))
-    iface = b.interface(node, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
+    iface = b.interface(nodes, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
     if iface is None:
         return
     if vrf:
@@ -193,7 +206,7 @@ def _static(b: Builder, node: ConfigNode, w: list[str]) -> None:
 
 
 def _prefix(
-    acc: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]],
+    acc: PrefixTable,
     node: ConfigNode,
     w: list[str],
 ) -> None:
@@ -218,9 +231,7 @@ def _prefix(
     entry = prefix_entry(action, prefix, seq=seq, ge=ge, le=le)
     if entry is None:
         return
-    nodes, entries = acc.setdefault((afi, name), ([], []))
-    nodes.append(node)
-    entries.append(entry)
+    acc.acc(afi, name).add(node, entry)
 
 
 def _vlan(b: Builder, node: ConfigNode, ident: str) -> None:
@@ -253,8 +264,9 @@ def _vlan_batch(b: Builder, node: ConfigNode, tokens: list[str]) -> None:
                 continue
         ids.append(start)
         k += 1
+    known = {v.vlan_id for v in b.vlans}
     for vid in ids:
-        if not any(v.vlan_id == vid for v in b.vlans):
+        if vid not in known:
             vlan = make(VLAN, ref=b.ref(node), vlan_id=vid)
             if vlan is not None:
                 b.vlans.append(vlan)

@@ -46,12 +46,24 @@ def parse_routeros_config(text: str, snapshot: Snapshot, vendor: str) -> ParsedC
     instances: dict[str, int | None] = {}
     vrf_members: dict[str, list[str]] = {}
     ifaces: dict[str, int] = {}
+    templates: dict[str, int | None] = {}
+
+    for section in root.children:
+        if section.text == "/routing bgp template":
+            for node in section.children:
+                cmd = parse_command(node.text)
+                name = cmd.params.get("name") or (cmd.positional[0] if cmd.positional else None)
+                if name is None and cmd.selector.startswith("find name="):
+                    name = cmd.selector.split("=", 1)[1].strip()
+                if name and cmd.verb in ("add", "set") and "as" in cmd.params:
+                    templates[name] = to_asn(cmd.params["as"])
 
     for section in root.children:
         head = section.text
         for node in section.children:
             cmd = parse_command(node.text)
             p = cmd.params
+            active = not _flag(p.get("disabled"))
             if head == "/system identity" and cmd.verb == "set" and "name" in p:
                 if b.device is None:
                     b.device = make(Device, ref=b.ref(node), hostname=p["name"])
@@ -61,7 +73,7 @@ def parse_routeros_config(text: str, snapshot: Snapshot, vendor: str) -> ParsedC
                     _vlan(b, node, p)
             elif head == "/interface bridge vlan" and cmd.verb == "add":
                 _bridge_vlans(b, node, p)
-            elif head in ("/ip address", "/ipv6 address") and cmd.verb == "add":
+            elif head in ("/ip address", "/ipv6 address") and cmd.verb == "add" and active:
                 addr = parse_iface_addr(p["address"]) if "address" in p else None
                 if "interface" in p:
                     b.address(node, p["interface"], addr)
@@ -75,11 +87,11 @@ def parse_routeros_config(text: str, snapshot: Snapshot, vendor: str) -> ParsedC
                     b.vrfs.append(vrf)
             elif head == "/routing bgp instance" and cmd.verb == "add" and "name" in p:
                 instances[p["name"]] = to_asn(p.get("as"))
-            elif head == "/routing bgp connection" and cmd.verb == "add":
-                _bgp(b, node, p, instances, local_key="remote")
-            elif head == "/routing bgp peer" and cmd.verb == "add":
-                _bgp(b, node, p, instances, local_key="legacy")
-            elif head in ("/ip route", "/ipv6 route") and cmd.verb == "add":
+            elif head == "/routing bgp connection" and cmd.verb == "add" and active:
+                _bgp(b, node, p, instances, templates, local_key="remote")
+            elif head == "/routing bgp peer" and cmd.verb == "add" and active:
+                _bgp(b, node, p, instances, templates, local_key="legacy")
+            elif head in ("/ip route", "/ipv6 route") and cmd.verb == "add" and active:
                 _route(b, node, p, cmd.positional)
     apply_interface_vrfs(b, iface_vrf)
     return b.build()
@@ -144,12 +156,16 @@ def _bgp(
     node: ConfigNode,
     p: dict[str, str],
     instances: dict[str, int | None],
+    templates: dict[str, int | None],
     local_key: str,
 ) -> None:
     if local_key == "remote":
         address = parse_ip(p.get("remote.address", "").partition("/")[0])
         remote_as = to_asn(p.get("remote.as"))
         local_as = to_asn(p.get("as")) or instances.get(p.get("instance", ""))
+        if local_as is None:
+            for template in p.get("templates", "default").split(","):
+                local_as = local_as or templates.get(template.strip())
         imports = p.get("input.filter")
         exports = p.get("output.filter-chain")
     else:
@@ -167,7 +183,7 @@ def _bgp(
         remote_as=remote_as,
         local_as=local_as,
         vrf=p.get("vrf") if p.get("vrf", "main") != "main" else None,
-        description=p.get("comment") or p.get("name"),
+        description=p.get("comment"),
         import_policies=(imports,) if imports else (),
         export_policies=(exports,) if exports else (),
     )
@@ -182,11 +198,14 @@ def _route(b: Builder, node: ConfigNode, p: dict[str, str], positional: list[str
         description=p.get("comment"),
         blackhole="blackhole" in positional or p.get("type") == "blackhole",
     )
-    gateway = p.get("gateway")
+    gateway = p.get("gateway", "").split(",")[0].strip()
     if gateway:
-        address = parse_ip(gateway.partition("%")[0])
+        address_text, _, scope = gateway.partition("%")
+        address = parse_ip(address_text)
         if address is not None:
             target.next_hop = address
+            if scope:
+                target.interface = scope
         else:
             target.interface = gateway
     table = p.get("routing-table")

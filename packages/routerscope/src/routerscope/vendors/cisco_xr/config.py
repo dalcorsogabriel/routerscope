@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from routerscope.model import VRF, Device, ParsedConfig, PrefixListEntry, Snapshot
+from routerscope.model import VRF, Device, ParsedConfig, Snapshot
 from routerscope.vendors._extract import (
     Builder,
     PeerAcc,
     PeerBook,
+    PrefixTable,
     add_prefix_lists,
     apply_interface_vrfs,
     make,
@@ -27,8 +28,9 @@ def parse_xr(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     root = parse_indented(text, "xr")
     b = Builder(snapshot, vendor)
     book = PeerBook()
-    prefixes: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]] = {}
+    prefixes = PrefixTable()
     iface_vrf: dict[str, str] = {}
+    ifaces: dict[str, list[ConfigNode]] = {}
     rds: dict[str, str] = {}
     bgp_vrf_nodes: dict[str, ConfigNode] = {}
     for node in root.children:
@@ -38,15 +40,18 @@ def parse_xr(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         if w[0] == "hostname" and len(w) >= 2 and b.device is None:
             b.device = make(Device, ref=b.ref(node), hostname=w[1])
         elif w[0] == "interface" and len(w) >= 2:
-            _interface(b, node, iface_vrf)
+            ifaces.setdefault(_iface_name(w), []).append(node)
         elif w[0] == "vrf" and len(w) == 2:
             _vrf(b, node, w[1])
         elif w[:2] == ["router", "bgp"] and len(w) >= 3:
+            book.default_local_as = to_asn(w[2])
             _bgp(book, node, rds, bgp_vrf_nodes)
         elif w[:2] == ["router", "static"]:
             _static(b, node)
         elif w[0] == "prefix-set" and len(w) == 2:
             _prefix_set(prefixes, node, w[1])
+    for iface_name, iface_nodes in ifaces.items():
+        _interface(b, iface_nodes, iface_name, iface_vrf)
     book.emit(b)
     add_prefix_lists(b, prefixes)
     apply_interface_vrfs(b, iface_vrf)
@@ -63,16 +68,20 @@ def parse_xr(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     return b.build()
 
 
-def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
-    name = rest(node.text, 1)
-    if name is None:
-        return
+def _iface_name(words: list[str]) -> str:
+    """Interface name: the first word after ``interface`` (mode words may follow)."""
+    if words[1] == "preconfigure" and len(words) > 2:
+        return words[2]
+    return words[1]
+
+
+def _interface(b: Builder, nodes: list[ConfigNode], name: str, iface_vrf: dict[str, str]) -> None:
     description: str | None = None
     enabled = True
     mtu: int | None = None
     vrf: str | None = None
     addresses = []
-    for child in node.children:
+    for child in (c for node in nodes for c in node.children):
         cw = child.words
         if not cw:
             continue
@@ -87,9 +96,13 @@ def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
         elif cw[:2] == ["ipv4", "address"] and len(cw) >= 3:
             mask = cw[3] if len(cw) > 3 and cw[3] != "secondary" else None
             addresses.append((child, parse_iface_addr(cw[2], mask), "secondary" in cw[3:]))
-        elif cw[:2] == ["ipv6", "address"] and len(cw) >= 3 and "link-local" not in cw:
+        elif (
+            cw[:2] == ["ipv6", "address"]
+            and len(cw) >= 3
+            and not {"eui-64", "link-local"} & set(cw[3:])
+        ):
             addresses.append((child, parse_iface_addr(cw[2]), False))
-    iface = b.interface(node, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
+    iface = b.interface(nodes, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
     if iface is None:
         return
     if vrf:
@@ -184,7 +197,7 @@ def _static(b: Builder, node: ConfigNode) -> None:
 
 
 def _prefix_set(
-    acc: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]],
+    acc: PrefixTable,
     node: ConfigNode,
     name: str,
 ) -> None:
@@ -207,7 +220,4 @@ def _prefix_set(
         if item is None:
             continue
         afi = "ipv6" if prefix.version == 6 else "ipv4"
-        nodes, entries = acc.setdefault((afi, name), ([], []))
-        if node not in nodes:
-            nodes.append(node)
-        entries.append(item)
+        acc.acc(afi, name).add(node, item)

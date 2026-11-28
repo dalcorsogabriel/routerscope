@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from routerscope.model import VLAN, VRF, Device, ParsedConfig, PrefixListEntry, Snapshot
+from routerscope.model import VLAN, VRF, Device, ParsedConfig, Snapshot
 from routerscope.vendors._extract import (
     Builder,
     PeerBook,
+    PrefixTable,
     add_prefix_lists,
     apply_interface_vrfs,
     make,
@@ -29,8 +30,9 @@ def parse_ios_like(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     root = parse_indented(text, "ios")
     b = Builder(snapshot, vendor)
     book = PeerBook()
-    prefixes: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]] = {}
+    prefixes = PrefixTable()
     iface_vrf: dict[str, str] = {}
+    ifaces: dict[str, list[ConfigNode]] = {}
     for node in root.children:
         w = node.words
         if not w:
@@ -39,10 +41,11 @@ def parse_ios_like(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         if head == "hostname" and len(w) >= 2 and b.device is None:
             b.device = make(Device, ref=b.ref(node), hostname=w[1])
         elif head == "interface" and len(w) >= 2:
-            _interface(b, node, iface_vrf)
+            ifaces.setdefault(_iface_name(w), []).append(node)
         elif node.text.startswith(_VRF_HEADS) and len(w) >= 3 and w[2] != "forwarding":
             _vrf(b, node, w[2])
         elif head == "router" and len(w) >= 3 and w[1] == "bgp":
+            book.default_local_as = to_asn(w[2])
             _bgp(book, node)
         elif head in ("ip", "ipv6") and len(w) >= 3 and w[1] == "route":
             _static(b, node, w)
@@ -60,6 +63,8 @@ def parse_ios_like(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
                         vlan = make(VLAN, ref=b.ref(child), vlan_id=vid, name=name)
                         if vlan is not None:
                             b.vlans.append(vlan)
+    for iface_name, iface_nodes in ifaces.items():
+        _interface(b, iface_nodes, iface_name, iface_vrf)
     book.emit(b)
     add_prefix_lists(b, prefixes)
     _link_vrfs(b, iface_vrf)
@@ -74,16 +79,20 @@ def _link_vrfs(b: Builder, iface_vrf: dict[str, str]) -> None:
     b.vrfs = [v.model_copy(update={"interfaces": tuple(members.get(v.name, ()))}) for v in b.vrfs]
 
 
-def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
-    name = rest(node.text, 1)
-    if name is None:
-        return
+def _iface_name(words: list[str]) -> str:
+    """Interface name: the first word after ``interface`` (mode words may follow)."""
+    if words[1] == "preconfigure" and len(words) > 2:
+        return words[2]
+    return words[1]
+
+
+def _interface(b: Builder, nodes: list[ConfigNode], name: str, iface_vrf: dict[str, str]) -> None:
     description: str | None = None
     enabled = True
     mtu: int | None = None
     vrf: str | None = None
     addresses = []
-    for child in node.children:
+    for child in (c for node in nodes for c in node.children):
         cw = child.words
         if not cw:
             continue
@@ -108,7 +117,7 @@ def _interface(b: Builder, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
             and not {"eui-64", "link-local"} & set(cw[3:])
         ):
             addresses.append((child, parse_iface_addr(cw[2]), False))
-    iface = b.interface(node, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
+    iface = b.interface(nodes, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
     if iface is None:
         return
     if vrf:
@@ -218,7 +227,7 @@ def _static(b: Builder, node: ConfigNode, w: list[str]) -> None:
 
 
 def _prefix_list(
-    acc: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]],
+    acc: PrefixTable,
     node: ConfigNode,
     w: list[str],
 ) -> None:
@@ -245,9 +254,7 @@ def _prefix_list(
     entry = prefix_entry(action, prefix, seq=seq, ge=ge, le=le)
     if entry is None:
         return
-    nodes, entries = acc.setdefault((afi, name), ([], []))
-    nodes.append(node)
-    entries.append(entry)
+    acc.acc(afi, name).add(node, entry)
 
 
 def _vlan(b: Builder, node: ConfigNode, ident: str) -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from ipaddress import (
     IPv4Address,
@@ -165,13 +165,19 @@ def make_static_route(
     target: RouteTarget,
     vrf: str | None,
     metric: int | None = None,
+    start: ConfigNode | None = None,
 ) -> None:
-    """Add a :class:`StaticRoute` built from parsed pieces (skipped if invalid)."""
+    """Add a :class:`StaticRoute` built from parsed pieces (skipped if invalid).
+
+    ``start`` is the node holding the prefix when the route is a nested block (SR OS
+    ``static-route-entry <prefix>`` / MD-CLI ``route <prefix>``): the ref then starts there.
+    """
     if prefix is None:
         return
+    ref = builder.ref(node) if start is None else builder.ref_span([start, node])
     route = safe(
         lambda: StaticRoute(
-            ref=builder.ref(node),
+            ref=ref,
             prefix=prefix,
             next_hop=target.next_hop,
             interface=target.interface,
@@ -187,16 +193,53 @@ def make_static_route(
         builder.static_routes.append(route)
 
 
-def add_prefix_lists(
-    builder: Builder,
-    groups: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]],
-) -> None:
-    """Turn accumulated (afi, name) -> (nodes, entries) into :class:`PrefixList` objects."""
-    for (afi, name), (nodes, entries) in groups.items():
-        if not entries:
+class PrefixAcc:
+    """One prefix list being assembled: its source nodes and entries (O(1) appends)."""
+
+    def __init__(self) -> None:
+        self.nodes: list[ConfigNode] = []
+        self.entries: list[PrefixListEntry] = []
+        self._node_ids: set[int] = set()
+        self._index: dict[IPNet, int] = {}
+
+    def add(self, node: ConfigNode, entry: PrefixListEntry | None, *, unique: bool = False) -> None:
+        """Record ``entry`` from ``node``; with ``unique`` an already-seen prefix is ignored."""
+        if id(node) not in self._node_ids:
+            self._node_ids.add(id(node))
+            self.nodes.append(node)
+        if entry is None or (unique and entry.prefix in self._index):
+            return
+        self._index.setdefault(entry.prefix, len(self.entries))
+        self.entries.append(entry)
+
+    def replace(self, entry: PrefixListEntry) -> None:
+        """Swap the entry for ``entry.prefix`` (first one if repeated)."""
+        position = self._index.get(entry.prefix)
+        if position is not None:
+            self.entries[position] = entry
+
+
+class PrefixTable(dict[tuple[str, str], PrefixAcc]):
+    """``(afi, name)`` -> :class:`PrefixAcc`."""
+
+    def acc(self, afi: str, name: str) -> PrefixAcc:
+        found = self.get((afi, name))
+        if found is None:
+            found = self[(afi, name)] = PrefixAcc()
+        return found
+
+
+def add_prefix_lists(builder: Builder, groups: PrefixTable) -> None:
+    """Turn accumulated prefix lists into :class:`PrefixList` objects."""
+    for (afi, name), acc in groups.items():
+        if not acc.entries:
             continue
         plist = make(
-            PrefixList, ref=builder.ref_span(nodes), name=name, afi=afi, entries=tuple(entries)
+            PrefixList,
+            ref=builder.ref_span(acc.nodes),
+            name=name,
+            afi=afi,
+            entries=tuple(acc.entries),
         )
         if plist is not None:
             builder.prefix_lists.append(plist)
@@ -260,6 +303,7 @@ class PeerBook:
     def __init__(self) -> None:
         self.peers: dict[tuple[str | None, str], PeerAcc] = {}
         self.groups: dict[tuple[str | None, str], PeerAcc] = {}
+        self.default_local_as: int | None = None
 
     def peer(self, vrf: str | None, name: str) -> PeerAcc:
         return self.peers.setdefault((vrf, name), PeerAcc())
@@ -278,7 +322,7 @@ class PeerBook:
             remote_as = acc.remote_as or (grp.remote_as if grp else None)
             if remote_as is None:
                 continue
-            local_as = acc.local_as or (grp.local_as if grp else None)
+            local_as = acc.local_as or (grp.local_as if grp else None) or self.default_local_as
             imports = acc.imports or (grp.imports if grp else [])
             exports = acc.exports or (grp.exports if grp else [])
             families = acc.families or (grp.families if grp else [])
@@ -326,11 +370,14 @@ class Builder:
         items = list(nodes)
         return self.ref_lines(min(n.line_start for n in items), max(n.line_end for n in items))
 
-    def interface(self, node: ConfigNode, name: str, **fields: Any) -> Interface | None:
-        """Create an :class:`Interface` from ``node`` and add it; returns it (or ``None``)."""
+    def interface(
+        self, node: ConfigNode | Sequence[ConfigNode], name: str, **fields: Any
+    ) -> Interface | None:
+        """Create an :class:`Interface` from one node (or several blocks of the same name)."""
         if not fields.get("mtu"):
             fields["mtu"] = None
-        iface = safe(lambda: Interface(ref=self.ref(node), name=name, vendor=self.vendor, **fields))
+        ref = self.ref(node) if isinstance(node, ConfigNode) else self.ref_span(node)
+        iface = safe(lambda: Interface(ref=ref, name=name, vendor=self.vendor, **fields))
         if iface is not None:
             self.interfaces.append(iface)
         return iface

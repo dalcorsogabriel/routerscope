@@ -5,14 +5,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from routerscope.model import VRF, Device, ParsedConfig, PrefixListEntry, Snapshot
+from routerscope.model import VRF, Device, ParsedConfig, Snapshot, split_lines
 from routerscope.vendors._extract import (
     Builder,
     PeerAcc,
     PeerBook,
+    PrefixTable,
     RouteTarget,
     add_prefix_lists,
-    apply_interface_vrfs,
     make,
     make_static_route,
     parse_iface_addr,
@@ -34,14 +34,13 @@ from routerscope.vendors._tree import (
 )
 
 _MDCLI = re.compile(r"^\s*(configure\s*\{|/configure\s)", re.MULTILINE)
-_Prefixes = dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]]
 
 
 def parse_sros(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     """Parse SR OS configuration (MD-CLI brace/flat form or classic CLI) into the model."""
     if looks_like_set(text, "mdcli"):
         return _mdcli(parse_set(text, "mdcli"), snapshot, vendor)
-    if _MDCLI.search(text):
+    if _MDCLI.search("\n".join(split_lines(text))):
         return _mdcli(parse_brace(text, "mdcli"), snapshot, vendor)
     return _classic(parse_indented(text, "sros"), snapshot, vendor)
 
@@ -52,8 +51,7 @@ def parse_sros(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
 def _classic(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     b = Builder(snapshot, vendor)
     book = PeerBook()
-    prefixes: _Prefixes = {}
-    iface_vrf: dict[str, str] = {}
+    prefixes = PrefixTable()
     for node in root.walk():
         w = node.words
         if not w:
@@ -62,24 +60,23 @@ def _classic(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         if w[0] == "name" and len(w) == 2 and parent[:1] == ["system"] and b.device is None:
             b.device = make(Device, ref=b.ref(node), hostname=w[1])
         elif w[0] == "router" and (len(w) == 1 or w[1] == "Base") and "create" not in w:
-            _classic_router(b, book, node, None, iface_vrf)
+            _classic_router(b, book, node, None)
         elif w[0] == "vprn" and len(w) >= 2:
-            _classic_vprn(b, book, node, iface_vrf)
+            _classic_vprn(b, book, node)
         elif w[0] == "port" and len(w) == 2 and parent[:1] != ["router"] and node.children:
             _classic_port(b, node)
         elif w[0] == "prefix-list" and len(w) == 2 and parent[:1] == ["policy-options"]:
             _classic_prefix_list(prefixes, node, w[1])
     book.emit(b)
     add_prefix_lists(b, prefixes)
-    apply_interface_vrfs(b, iface_vrf)
-    members: dict[str, list[str]] = {}
-    for name, vrf in iface_vrf.items():
-        members.setdefault(vrf, []).append(name)
-    b.vrfs = [v.model_copy(update={"interfaces": tuple(members.get(v.name, ()))}) for v in b.vrfs]
+    b.vrfs = [
+        v.model_copy(update={"interfaces": tuple(i.name for i in b.interfaces if i.vrf == v.name)})
+        for v in b.vrfs
+    ]
     return b.build()
 
 
-def _classic_vprn(b: Builder, book: PeerBook, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
+def _classic_vprn(b: Builder, book: PeerBook, node: ConfigNode) -> None:
     words = node.words
     name = f"vprn{words[1]}"
     if "name" in words[2:-1]:
@@ -111,7 +108,7 @@ def _classic_vprn(b: Builder, book: PeerBook, node: ConfigNode, iface_vrf: dict[
     )
     if vrf is not None:
         b.vrfs.append(vrf)
-    _classic_router(b, book, node, name, iface_vrf)
+    _classic_router(b, book, node, name)
 
 
 def _classic_port(b: Builder, node: ConfigNode) -> None:
@@ -127,9 +124,7 @@ def _classic_port(b: Builder, node: ConfigNode) -> None:
     b.interface(node, node.words[1], description=description, enabled=enabled)
 
 
-def _classic_router(
-    b: Builder, book: PeerBook, node: ConfigNode, vrf: str | None, iface_vrf: dict[str, str]
-) -> None:
+def _classic_router(b: Builder, book: PeerBook, node: ConfigNode, vrf: str | None) -> None:
     local_as: int | None = None
     for child in node.children:
         cw = child.words
@@ -138,7 +133,7 @@ def _classic_router(
     for child in node.children:
         cw = child.words
         if cw[:1] == ["interface"] and len(cw) >= 2:
-            _classic_interface(b, child, vrf, iface_vrf)
+            _classic_interface(b, child, vrf)
         elif cw == ["bgp"]:
             _classic_bgp(book, child, vrf, local_as)
         elif cw[:1] == ["static-route-entry"] and len(cw) == 2:
@@ -147,9 +142,7 @@ def _classic_router(
             make_static_route(b, child, parse_net(cw[1]), parse_route_target(cw[2:]), vrf)
 
 
-def _classic_interface(
-    b: Builder, node: ConfigNode, vrf: str | None, iface_vrf: dict[str, str]
-) -> None:
+def _classic_interface(b: Builder, node: ConfigNode, vrf: str | None) -> None:
     name = node.words[1]
     description: str | None = None
     enabled = True
@@ -167,6 +160,8 @@ def _classic_interface(
             mtu = to_int(cw[1])
         elif cw[:1] == ["address"] and len(cw) >= 2:
             addresses.append((child, parse_iface_addr(cw[1]), "secondary" in cw[2:]))
+        elif cw[:1] == ["secondary"] and len(cw) >= 2:
+            addresses.append((child, parse_iface_addr(cw[1]), True))
         elif cw == ["ipv6"]:
             for sub in child.children:
                 sw = sub.words
@@ -175,8 +170,6 @@ def _classic_interface(
     iface = b.interface(node, name, description=description, enabled=enabled, mtu=mtu, vrf=vrf)
     if iface is None:
         return
-    if vrf:
-        iface_vrf[name] = vrf
     for child, addr, secondary in addresses:
         b.address(child, name, addr, vrf=vrf, secondary=secondary)
 
@@ -234,7 +227,7 @@ def _classic_static(b: Builder, node: ConfigNode, vrf: str | None) -> None:
             target.next_hop = parse_ip(cw[1])
             if target.next_hop is None:
                 target.interface = cw[1]
-        elif cw == ["black-hole"]:
+        elif cw in (["black-hole"], ["blackhole"]):
             target.blackhole = True
         else:
             continue
@@ -246,10 +239,10 @@ def _classic_static(b: Builder, node: ConfigNode, vrf: str | None) -> None:
                 target.tag = to_int(sw[1])
             elif sw[:1] == ["description"]:
                 target.description = rest(sub.text, 1)
-        make_static_route(b, child, prefix, target, vrf)
+        make_static_route(b, child, prefix, target, vrf, start=node)
 
 
-def _classic_prefix_list(prefixes: _Prefixes, node: ConfigNode, name: str) -> None:
+def _classic_prefix_list(prefixes: PrefixTable, node: ConfigNode, name: str) -> None:
     for entry in node.children:
         ew = entry.words
         if ew[:1] != ["prefix"] or len(ew) < 2:
@@ -263,10 +256,7 @@ def _classic_prefix_list(prefixes: _Prefixes, node: ConfigNode, name: str) -> No
         if item is None:
             continue
         afi = "ipv6" if prefix.version == 6 else "ipv4"
-        nodes, entries = prefixes.setdefault((afi, name), ([], []))
-        if node not in nodes:
-            nodes.append(node)
-        entries.append(item)
+        prefixes.acc(afi, name).add(node, item)
 
 
 def _length_bounds(length: int, top: int, words: list[str]) -> dict[str, int | None]:
@@ -286,6 +276,9 @@ def _length_bounds(length: int, top: int, words: list[str]) -> dict[str, int | N
 
 # --------------------------------------------------------------------------- MD-CLI
 
+_Addr = tuple[ConfigNode, int | None, bool]
+_Route = tuple[ConfigNode, RouteTarget, ConfigNode]
+
 
 @dataclass
 class _MdIface:
@@ -294,21 +287,39 @@ class _MdIface:
     description: str | None = None
     disabled: bool = False
     mtu: int | None = None
-    v4: dict[str, tuple[ConfigNode, int | None]] = field(default_factory=dict)
-    v6: dict[str, tuple[ConfigNode, int | None]] = field(default_factory=dict)
+    v4: dict[str, _Addr] = field(default_factory=dict)
+    v6: dict[str, _Addr] = field(default_factory=dict)
     primary: str | None = None
+
+
+@dataclass
+class _MdPort:
+    nodes: list[ConfigNode] = field(default_factory=list)
+    description: str | None = None
+    enabled: bool | None = None
+
+
+@dataclass
+class _MdVprn:
+    node: ConfigNode
+    rd: str | None = None
+    imports: list[str] = field(default_factory=list)
+    exports: list[str] = field(default_factory=list)
+
+
+_KINDS = {"exact": 0, "longer": 1, "orlonger": 2, "range": 3}
 
 
 def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     b = Builder(snapshot, vendor)
     book = PeerBook()
-    prefixes: _Prefixes = {}
+    prefixes = PrefixTable()
     ifaces: dict[tuple[str | None, str], _MdIface] = {}
+    ports: dict[str, _MdPort] = {}
     peer_nodes: dict[tuple[str | None, str], ConfigNode] = {}
-    rds: dict[str, tuple[ConfigNode, str | None]] = {}
-    routes: dict[tuple[str | None, str, str], tuple[ConfigNode, RouteTarget]] = {}
-    pl_bounds: dict[tuple[str, str], dict[str, int | None]] = {}
-    pl_nodes: dict[tuple[str, str, str], ConfigNode] = {}
+    vprns: dict[str, _MdVprn] = {}
+    routes: dict[tuple[str | None, str, str], _Route] = {}
+    held: dict[tuple[str, str, str], dict[str, int | None]] = {}
     local_as: dict[str | None, int | None] = {}
 
     for node in root.walk():
@@ -319,6 +330,9 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         if rel[:2] == ("system", "name") and len(rel) == 3 and b.device is None:
             b.device = make(Device, ref=b.ref(node), hostname=rel[2])
             continue
+        if rel[0] == "port" and len(rel) >= 2:
+            _md_port(ports, node, rel)
+            continue
         vrf: str | None = None
         base = 0
         if rel[:2] == ("router", "Base"):
@@ -326,12 +340,9 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         elif rel[:2] == ("service", "vprn") and len(rel) >= 3:
             vrf = rel[2]
             base = 3
-            anchor = anchor_at(node, 3 + 1)
-            rds.setdefault(vrf, (anchor, None))
-            if len(rel) >= 5 and rel[3] == "route-distinguisher":
-                rds[vrf] = (anchor, rel[4])
+            _md_vprn(vprns, node, rel)
         elif rel[0] == "policy-options" and len(rel) >= 5 and rel[1] == "prefix-list":
-            _md_prefix(prefixes, pl_bounds, pl_nodes, node, fw, rel)
+            _md_prefix(prefixes, held, node, fw, rel)
             continue
         else:
             continue
@@ -347,47 +358,92 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         elif body[:1] == ("static-routes",) and len(body) >= 3 and body[1] == "route":
             _md_route(routes, node, fw, body, vrf)
 
-    for (peer_vrf, name), anchor in peer_nodes.items():
+    for (peer_vrf, name), peer_node in peer_nodes.items():
         acc = book.peers[(peer_vrf, name)]
-        acc.ref = (anchor.line_start, anchor.line_end)
+        acc.ref = (peer_node.line_start, peer_node.line_end)
         grp = book.groups.get((peer_vrf, acc.group or ""))
         if acc.local_as is None and (grp is None or grp.local_as is None):
             acc.local_as = local_as.get(peer_vrf)
     book.emit(b)
 
-    iface_vrf: dict[str, str] = {}
-    for (iface_scope, name), i in ifaces.items():
+    for port_name, port in ports.items():
+        b.interface(port.nodes, port_name, description=port.description, enabled=port.enabled)
+    for (scope, name), i in ifaces.items():
         b.interface(
             i.node,
             name,
             description=i.description,
             enabled=not i.disabled,
             mtu=i.mtu,
-            vrf=iface_scope,
+            vrf=scope,
         )
-        if iface_scope:
-            iface_vrf[name] = iface_scope
         for table in (i.v4, i.v6):
-            for address, (addr_node, length) in table.items():
+            for address, (addr_node, length, secondary) in table.items():
                 if length is not None:
                     b.address(
-                        addr_node, name, parse_iface_addr(address, str(length)), vrf=iface_scope
+                        addr_node,
+                        name,
+                        parse_iface_addr(address, str(length)),
+                        vrf=scope,
+                        secondary=secondary,
                     )
-    for name, (vrf_node, rd) in rds.items():
-        vrf_obj = make(VRF, ref=b.ref(vrf_node), name=name, rd=rd)
+    for vrf_name, vp in vprns.items():
+        vrf_obj = make(
+            VRF,
+            ref=b.ref(vp.node),
+            name=vrf_name,
+            rd=vp.rd,
+            import_targets=tuple(vp.imports),
+            export_targets=tuple(vp.exports),
+            interfaces=tuple(i.name for i in b.interfaces if i.vrf == vrf_name),
+        )
         if vrf_obj is not None:
             b.vrfs.append(vrf_obj)
-    apply_interface_vrfs(b, iface_vrf)
-    b.vrfs = [
-        v.model_copy(update={"interfaces": tuple(n for n, s in iface_vrf.items() if s == v.name)})
-        for v in b.vrfs
-    ]
-    for (route_vrf, prefix, _), (route_node, target) in routes.items():
-        make_static_route(b, route_node, parse_net(prefix), target, route_vrf)
-    for key, bounds in pl_bounds.items():
-        _apply_bounds(prefixes, key, bounds)
+    for (route_vrf, prefix, _), (route_node, target, start) in routes.items():
+        make_static_route(b, route_node, parse_net(prefix), target, route_vrf, start=start)
+    for (afi, name, prefix_text), slot in held.items():
+        _apply_bounds(prefixes, afi, name, prefix_text, slot)
     add_prefix_lists(b, prefixes)
     return b.build()
+
+
+def _md_port(ports: dict[str, _MdPort], node: ConfigNode, rel: tuple[str, ...]) -> None:
+    port = ports.setdefault(rel[1], _MdPort())
+    target = anchor_at(node, 3)
+    if all(target is not n for n in port.nodes):
+        port.nodes.append(target)
+    tail = rel[2:]
+    if tail[:1] == ("description",) and len(tail) >= 2:
+        port.description = tail[1]
+    elif tail[:1] == ("admin-state",) and len(tail) >= 2:
+        port.enabled = tail[1] != "disable"
+
+
+def _md_vprn(vprns: dict[str, _MdVprn], node: ConfigNode, rel: tuple[str, ...]) -> None:
+    vp = vprns.setdefault(rel[2], _MdVprn(anchor_at(node, 4)))
+    tail = rel[3:]
+    if tail[:1] == ("route-distinguisher",) and len(tail) >= 2:
+        vp.rd = tail[1]
+    elif tail[:1] == ("vrf-target",) and len(tail) >= 3:
+        if tail[1] in ("community", "import-community"):
+            vp.imports.append(tail[2])
+        if tail[1] in ("community", "export-community"):
+            vp.exports.append(tail[2])
+
+
+def _set_addr(
+    table: dict[str, _Addr],
+    address: str,
+    node: ConfigNode,
+    length: int | None,
+    *,
+    secondary: bool,
+) -> None:
+    previous = table.get(address)
+    if previous is not None:
+        node = previous[0]
+        length = length if length is not None else previous[1]
+    table[address] = (node, length, secondary)
 
 
 def _md_iface(
@@ -402,6 +458,7 @@ def _md_iface(
     tail = body[2:]
     if not tail:
         return
+    base = len(fw) - len(tail)
     if tail[0] == "description" and len(tail) >= 2:
         acc.description = tail[1]
     elif tail[0] == "admin-state" and len(tail) >= 2:
@@ -410,16 +467,17 @@ def _md_iface(
         acc.mtu = to_int(tail[1])
     elif tail[:3] == ("ipv4", "primary", "address") and len(tail) >= 4:
         acc.primary = tail[3]
-        acc.v4.setdefault(tail[3], (anchor_at(node, len(fw) - len(tail) + 4), None))
+        _set_addr(acc.v4, tail[3], anchor_at(node, base + 4), None, secondary=False)
     elif tail[:3] == ("ipv4", "primary", "prefix-length") and len(tail) >= 4:
         if acc.primary is not None and acc.primary in acc.v4:
-            acc.v4[acc.primary] = (acc.v4[acc.primary][0], to_int(tail[3]))
+            first = acc.v4[acc.primary][0]
+            _set_addr(acc.v4, acc.primary, first, to_int(tail[3]), secondary=False)
+    elif tail[:2] == ("ipv4", "secondary") and len(tail) >= 3:
+        length = to_int(tail[4]) if tail[3:4] == ("prefix-length",) and len(tail) >= 5 else None
+        _set_addr(acc.v4, tail[2], anchor_at(node, base + 3), length, secondary=True)
     elif tail[:2] == ("ipv6", "address") and len(tail) >= 3:
-        address = tail[2]
-        anchor = anchor_at(node, len(fw) - len(tail) + 3)
-        length = to_int(tail[4]) if len(tail) >= 5 and tail[3] == "prefix-length" else None
-        previous = acc.v6.get(address)
-        acc.v6[address] = (anchor, length if length is not None else (previous or (0, None))[1])
+        length = to_int(tail[4]) if tail[3:4] == ("prefix-length",) and len(tail) >= 5 else None
+        _set_addr(acc.v6, tail[2], anchor_at(node, base + 3), length, secondary=False)
 
 
 def _md_bgp(
@@ -459,24 +517,24 @@ def _md_bgp(
 
 
 def _md_route(
-    routes: dict[tuple[str | None, str, str], tuple[ConfigNode, RouteTarget]],
+    routes: dict[tuple[str | None, str, str], _Route],
     node: ConfigNode,
     fw: tuple[str, ...],
     body: tuple[str, ...],
     vrf: str | None,
 ) -> None:
     prefix = body[2]
+    start = anchor_at(node, len(fw) - len(body) + 3)
     tail = body[3:]
-    consumed = 3
     if tail[:1] == ("route-type",) and len(tail) >= 2:
         tail = tail[2:]
-        consumed += 2
     if not tail:
         return
     if tail[0] == "next-hop" and len(tail) >= 2:
         nh = tail[1]
         entry = routes.setdefault(
-            (vrf, prefix, nh), (anchor_at(node, len(fw) - len(tail) + 2), RouteTarget())
+            (vrf, prefix, nh),
+            (anchor_at(node, len(fw) - len(tail) + 2), RouteTarget(), start),
         )
         target = entry[1]
         address = parse_ip(nh)
@@ -485,9 +543,10 @@ def _md_route(
         else:
             target.interface = nh
         attr = tail[2:]
-    elif tail[0] == "black-hole":
+    elif tail[0] in ("black-hole", "blackhole"):
         entry = routes.setdefault(
-            (vrf, prefix, "black-hole"), (anchor_at(node, len(fw) - len(tail) + 1), RouteTarget())
+            (vrf, prefix, "black-hole"),
+            (anchor_at(node, len(fw) - len(tail) + 1), RouteTarget(), start),
         )
         entry[1].blackhole = True
         target = entry[1]
@@ -503,9 +562,8 @@ def _md_route(
 
 
 def _md_prefix(
-    prefixes: _Prefixes,
-    bounds: dict[tuple[str, str], dict[str, int | None]],
-    nodes: dict[tuple[str, str, str], ConfigNode],
+    prefixes: PrefixTable,
+    held: dict[tuple[str, str, str], dict[str, int | None]],
     node: ConfigNode,
     fw: tuple[str, ...],
     rel: tuple[str, ...],
@@ -518,51 +576,31 @@ def _md_prefix(
         return
     afi = "ipv6" if prefix.version == 6 else "ipv4"
     list_node = anchor_at(node, len(fw) - len(rel) + 3 + 1)
+    prefixes.acc(afi, name).add(list_node, prefix_entry("permit", prefix), unique=True)
     tail = rel[5:]
-    kind = tail[tail.index("type") + 1] if "type" in tail[:-1] else None
-    lengths = {
-        k: to_int(tail[tail.index(k) + 1]) for k in ("start-length", "end-length") if k in tail[:-1]
-    }
-    key = (afi, name)
-    entry_key = (afi, name, rel[4])
-    nodes.setdefault(entry_key, list_node)
-    held = bounds.setdefault((afi + "|" + name, rel[4]), {})
-    if kind:
-        held["kind"] = {"exact": 0, "longer": 1, "orlonger": 2, "range": 3}.get(kind, 0)
-    held.update(
-        {
-            "ge": lengths.get("start-length", held.get("ge")),
-            "le": lengths.get("end-length", held.get("le")),
-        }
-    )
-    plist_nodes, entries = prefixes.setdefault(key, ([], []))
-    if not any(n is list_node for n in plist_nodes):
-        plist_nodes.append(list_node)
-    if all(e.prefix != prefix for e in entries):
-        item = prefix_entry("permit", prefix)
-        if item is not None:
-            entries.append(item)
+    slot = held.setdefault((afi, name, rel[4]), {})
+    if "type" in tail[:-1]:
+        slot["kind"] = _KINDS.get(tail[tail.index("type") + 1], 0)
+    for key, field_name in (("start-length", "ge"), ("end-length", "le")):
+        if key in tail[:-1]:
+            slot[field_name] = to_int(tail[tail.index(key) + 1])
 
 
-def _apply_bounds(prefixes: _Prefixes, key: tuple[str, str], held: dict[str, int | None]) -> None:
-    afi_name, prefix_text = key
-    afi, _, name = afi_name.partition("|")
-    pair = prefixes.get((afi, name))
+def _apply_bounds(
+    prefixes: PrefixTable, afi: str, name: str, prefix_text: str, slot: dict[str, int | None]
+) -> None:
+    acc = prefixes.get((afi, name))
     prefix = parse_net(prefix_text)
-    if pair is None or prefix is None:
+    if acc is None or prefix is None:
         return
-    kind = held.get("kind")
-    ge, le = held.get("ge"), held.get("le")
+    kind = slot.get("kind")
+    ge, le = slot.get("ge"), slot.get("le")
     if kind == 1:
         ge, le = prefix.prefixlen + 1, prefix.max_prefixlen
     elif kind == 2:
         ge, le = prefix.prefixlen, prefix.max_prefixlen
-    elif kind in (0, None) and ge is None and le is None:
+    elif ge is None and le is None:
         return
     new = prefix_entry("permit", prefix, ge=ge, le=le)
-    if new is None:
-        return
-    entries = pair[1]
-    for i, e in enumerate(entries):
-        if e.prefix == prefix:
-            entries[i] = new
+    if new is not None:
+        acc.replace(new)

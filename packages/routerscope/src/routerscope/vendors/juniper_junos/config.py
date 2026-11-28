@@ -10,10 +10,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from routerscope.model import VLAN, VRF, Device, ParsedConfig, PrefixListEntry, Snapshot
+from routerscope.model import VLAN, VRF, Device, ParsedConfig, Snapshot
 from routerscope.vendors._extract import (
     Builder,
     PeerBook,
+    PrefixTable,
     RouteTarget,
     add_prefix_lists,
     apply_interface_vrfs,
@@ -29,6 +30,7 @@ from routerscope.vendors._extract import (
 from routerscope.vendors._flat import anchor_at, is_inactive, values
 from routerscope.vendors._tree import ConfigNode, looks_like_set, parse_brace, parse_set
 
+_RESERVED = frozenset({"apply-groups", "apply-groups-except", "interface-range", "traceoptions"})
 _AFI = {"inet": "ipv4", "inet6": "ipv6", "inet-vpn": "vpnv4", "inet6-vpn": "vpnv6"}
 
 
@@ -74,7 +76,7 @@ def parse_junos(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     ifaces: dict[str, _Iface] = {}
     vrfs: dict[str, _Vrf] = {}
     routes: dict[tuple[str | None, str], _Route] = {}
-    prefixes: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]] = {}
+    prefixes = PrefixTable()
     vlans: dict[str, tuple[ConfigNode, int | None]] = {}
     peer_nodes: dict[tuple[str | None, str], ConfigNode] = {}
     local_as: int | None = None
@@ -98,7 +100,7 @@ def parse_junos(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
                 b.device = make(Device, ref=b.ref(node), hostname=rel[2])
             elif rel[:2] == ("routing-options", "autonomous-system") and len(rel) >= 3:
                 local_as = to_asn(rel[2]) or local_as
-            elif rel[0] == "interfaces" and len(rel) >= 3:
+            elif rel[0] == "interfaces" and len(rel) >= 2 and rel[1] not in _RESERVED:
                 _iface_stmt(ifaces, node, rel)
             elif rel[0] == "vlans" and len(rel) >= 4 and rel[2] == "vlan-id":
                 vlans.setdefault(rel[1], (anchor_at(node, 2), to_int(rel[3])))
@@ -177,9 +179,13 @@ def _iface_stmt(ifaces: dict[str, _Iface], node: ConfigNode, rel: tuple[str, ...
     name = rel[1]
     acc = ifaces.setdefault(name, _Iface(anchor_at(node, 2)))
     tail = rel[2:]
-    if tail[0] == "unit" and len(tail) >= 3:
+    if not tail:
+        return
+    if tail[0] == "unit" and len(tail) >= 2:
         unit = ifaces[name].units.setdefault(tail[1], _Unit(anchor_at(node, 4)))
         body = tail[2:]
+        if not body:
+            return
         if body[0] == "description" and len(body) >= 2:
             unit.description = body[1]
         elif body[0] == "disable":
@@ -279,7 +285,7 @@ def _route_stmt(
 
 
 def _prefix_stmt(
-    acc: dict[tuple[str, str], tuple[list[ConfigNode], list[PrefixListEntry]]],
+    acc: PrefixTable,
     node: ConfigNode,
     fw: tuple[str, ...],
     rel: tuple[str, ...],
@@ -292,9 +298,4 @@ def _prefix_stmt(
     if entry is None:
         return
     afi = "ipv6" if prefix.version == 6 else "ipv4"
-    nodes, entries = acc.setdefault((afi, name), ([], []))
-    list_node = anchor_at(node, 3 + len(fw) - len(rel))
-    if not any(n is list_node for n in nodes):
-        nodes.append(list_node)
-    if all(e.prefix != prefix for e in entries):
-        entries.append(entry)
+    acc.acc(afi, name).add(anchor_at(node, 3 + len(fw) - len(rel)), entry, unique=True)
