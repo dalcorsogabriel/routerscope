@@ -1,0 +1,97 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show ip bgp summary",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 12
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 13,
+        "line_end": 13
+      },
+      "peer": "192.0.2.6",
+      "remote_as": 64498,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Idle (Admin)",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 14
+      },
+      "peer": "192.0.2.9",
+      "remote_as": 64499,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 15,
+        "line_end": 15
+      },
+      "peer": "198.51.100.2",
+      "remote_as": 64500,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Active",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 16
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64501,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 17,
+        "line_end": 18
+      },
+      "peer": "2001:db8:0:1::3",
+      "remote_as": 64502,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Idle",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

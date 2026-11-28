@@ -1,0 +1,55 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "dis int br",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "name": "GigabitEthernet0/0/0",
+      "name_normalized": "GigabitEthernet0/0/0",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "name": "GigabitEthernet0/0/1",
+      "name_normalized": "GigabitEthernet0/0/1",
+      "vendor": "huawei_vrp",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 11,
+        "line_end": 11
+      },
+      "name": "10GE1/0/1",
+      "name_normalized": "10GE1/0/1",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 12
+      },
+      "name": "LoopBack0",
+      "name_normalized": "LoopBack0",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+Cisco IOS Software, 3800 Software (C3845-ADVIPSERVICESK9-M), Version 12.4(24)T, RELEASE SOFTWARE (fc2)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2011 by Cisco Systems, Inc.
+
+ROM: System Bootstrap, Version 12.4(13r)T, RELEASE SOFTWARE (fc1)
+
+R2 uptime is 1 week, 2 days
+System returned to ROM by reload
+
+Cisco 3845 (revision 1.0) with 249856K/12288K bytes of memory.
+Processor board ID SERIAL0002

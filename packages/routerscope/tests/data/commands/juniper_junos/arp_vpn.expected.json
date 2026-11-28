@@ -1,0 +1,21 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show arp vpn CUST1",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "ip": "198.51.100.2",
+      "mac": "00:00:5e:00:53:11",
+      "interface": "ge-0/0/2.0",
+      "interface_normalized": "ge-0/0/2.0",
+      "vendor": "juniper_junos",
+      "vrf": "CUST1"
+    }
+  ]
+}

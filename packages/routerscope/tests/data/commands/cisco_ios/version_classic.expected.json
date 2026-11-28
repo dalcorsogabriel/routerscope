@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "sh ver",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "software": "IOS",
+      "version": "12.4(24)T",
+      "platform": "3845",
+      "uptime": "1 week, 2 days"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 11
+      },
+      "hostname": "R2",
+      "model": "3845",
+      "serial": "SERIAL0002"
+    }
+  ]
+}

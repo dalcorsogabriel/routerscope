@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show version",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "software": "Junos",
+      "version": "21.4R3-S2.3",
+      "platform": "mx480"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 2
+      },
+      "hostname": "R1",
+      "model": "mx480"
+    }
+  ]
+}

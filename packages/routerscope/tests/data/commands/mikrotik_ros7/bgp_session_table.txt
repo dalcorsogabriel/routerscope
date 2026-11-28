@@ -1,0 +1,5 @@
+Flags: E - ESTABLISHED
+Columns: NAME, REMOTE.ADDRESS, .AS, .ID, LOCAL.ROLE, UPTIME, PREFIX-COUNT
+ #    NAME      REMOTE.ADDRESS  .AS    .ID          LOCAL.ROLE  UPTIME    PREFIX-COUNT
+ 0 E  peer-1    192.0.2.2       64497  192.0.2.2    ebgp        1d2h3m               5
+ 1    peer-2    2001:db8::2     64498                ebgp

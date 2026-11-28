@@ -1,0 +1,16 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/system identity print",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "hostname": "R1"
+    }
+  ]
+}

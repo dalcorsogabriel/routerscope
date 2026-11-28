@@ -1,0 +1,3 @@
+MAC Address       Address         Name                      Interface               Flags
+00:00:5e:00:53:11 198.51.100.2    host-a.example.net        ge-0/0/2.0              none
+Total entries: 1

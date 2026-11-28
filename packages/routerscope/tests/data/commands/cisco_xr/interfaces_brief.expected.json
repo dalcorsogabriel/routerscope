@@ -1,0 +1,46 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show interfaces brief",
+  "vendor": "cisco_xr",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "name": "Gi0/0/0/0",
+      "name_normalized": "GigabitEthernet0/0/0/0",
+      "vendor": "cisco_xr",
+      "enabled": true,
+      "mtu": 1514
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "name": "Gi0/0/0/1",
+      "name_normalized": "GigabitEthernet0/0/0/1",
+      "vendor": "cisco_xr",
+      "enabled": false,
+      "mtu": 1514
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "name": "Lo0",
+      "name_normalized": "Loopback0",
+      "vendor": "cisco_xr",
+      "enabled": true,
+      "mtu": 1500
+    }
+  ]
+}

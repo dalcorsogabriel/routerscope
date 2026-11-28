@@ -1,0 +1,14 @@
+Cisco IOS XE Software, Version 17.03.04
+Cisco IOS Software [Amsterdam], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.3.4, RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2021 by Cisco Systems, Inc.
+
+ROM: IOS-XE ROMMON
+
+R1 uptime is 2 weeks, 3 days, 4 hours, 5 minutes
+Uptime for this control processor is 2 weeks, 3 days, 4 hours, 6 minutes
+System image file is "bootflash:packages.conf"
+
+cisco CSR1000V (VXE) processor (revision VXE) with 2145597K/3075K bytes of memory.
+Processor board ID SERIAL0001
+2 Gigabit Ethernet interfaces

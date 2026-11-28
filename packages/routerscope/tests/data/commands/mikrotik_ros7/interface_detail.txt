@@ -1,0 +1,5 @@
+Flags: D - DYNAMIC; R - RUNNING; S - SLAVE; X - DISABLED
+ 0  R  ;;; uplink to PE2
+       name="ether1" default-name="ether1" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1598
+       max-l2mtu=4074 mac-address=00:00:5E:00:53:01
+ 1  X  name="ether2" default-name="ether2" type="ether" mtu=1500 actual-mtu=1500

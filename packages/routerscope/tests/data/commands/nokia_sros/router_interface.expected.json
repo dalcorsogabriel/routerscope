@@ -1,0 +1,99 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router interface",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 8
+      },
+      "name": "system",
+      "name_normalized": "system",
+      "vendor": "nokia_sros",
+      "enabled": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "interface": "system",
+      "address": "192.0.2.1/32",
+      "secondary": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 11
+      },
+      "name": "to-PE2",
+      "name_normalized": "to-PE2",
+      "vendor": "nokia_sros",
+      "enabled": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "interface": "to-PE2",
+      "address": "192.0.2.5/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 11,
+        "line_end": 11
+      },
+      "interface": "to-PE2",
+      "address": "2001:db8::1/64",
+      "secondary": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 13
+      },
+      "name": "to-CE1",
+      "name_normalized": "to-CE1",
+      "vendor": "nokia_sros",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 16
+      },
+      "name": "a-very-long-interface-name-over-32-chars",
+      "name_normalized": "a-very-long-interface-name-over-32-chars",
+      "vendor": "nokia_sros",
+      "enabled": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 16
+      },
+      "interface": "a-very-long-interface-name-over-32-chars",
+      "address": "198.51.100.1/24",
+      "secondary": false
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Flags: X - disabled, I - invalid, D - dynamic, L - local, E - external
+Columns: MAC-ADDRESS, VID, ON-INTERFACE, BRIDGE
+#      MAC-ADDRESS        VID  ON-INTERFACE  BRIDGE
+0   DL 00:00:5E:00:53:01       bridge        bridge1
+1   D  00:00:5E:00:53:02    10  ether2        bridge1
+2      00:00:5E:00:53:03    20  ether3        bridge1

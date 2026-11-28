@@ -1,0 +1,23 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "sh ip bgp vpnv4 vrf CUST1 sum",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "peer": "198.51.100.2",
+      "remote_as": 64510,
+      "local_as": 64496,
+      "vrf": "CUST1",
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

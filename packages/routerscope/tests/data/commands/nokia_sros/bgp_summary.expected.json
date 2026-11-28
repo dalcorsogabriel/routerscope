@@ -1,0 +1,53 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router bgp summary",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 19
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "description": "Core RR",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 20,
+        "line_end": 22
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64498,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Active",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 23,
+        "line_end": 25
+      },
+      "peer": "198.51.100.6",
+      "remote_as": 64499,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Connect",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

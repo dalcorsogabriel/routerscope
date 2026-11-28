@@ -1,0 +1,3 @@
+TiMOS-B-22.10.R3 both/x86_64 Nokia 7750 SR Copyright (c) 2000-2023 Nokia.
+All rights reserved. All use subject to applicable license agreements.
+Built on Tue Dec 20 12:00:00 PST 2022 by builder in /builds/22.10B1/R3/panos/main/sros

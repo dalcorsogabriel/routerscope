@@ -1,0 +1,11 @@
+                   uptime: 1d2h3m4s
+                  version: 7.11.2 (stable)
+               build-time: 2023-09-11 12:00:00
+         factory-software: 7.1
+              free-memory: 800.0MiB
+             total-memory: 1024.0MiB
+                      cpu: ARM
+                cpu-count: 4
+        architecture-name: arm
+               board-name: hAP ac^2
+                 platform: MikroTik

@@ -1,0 +1,1 @@
+show ethernet-switching table

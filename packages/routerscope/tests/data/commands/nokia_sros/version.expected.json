@@ -1,0 +1,18 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show version",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "software": "SR OS",
+      "version": "B-22.10.R3",
+      "platform": "Nokia 7750 SR"
+    }
+  ]
+}

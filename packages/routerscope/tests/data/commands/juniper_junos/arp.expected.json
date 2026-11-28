@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show arp no-resolve",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "ip": "192.0.2.1",
+      "mac": "00:00:5e:00:53:01",
+      "interface": "ge-0/0/0.0",
+      "interface_normalized": "ge-0/0/0.0",
+      "vendor": "juniper_junos"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "ip": "192.0.2.2",
+      "mac": "00:00:5e:00:53:02",
+      "interface": "ge-0/0/1.0",
+      "interface_normalized": "ge-0/0/1.0",
+      "vendor": "juniper_junos"
+    }
+  ]
+}

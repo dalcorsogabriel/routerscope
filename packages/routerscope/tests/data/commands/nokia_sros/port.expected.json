@@ -1,0 +1,47 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show port",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "name": "1/1/1",
+      "name_normalized": "1/1/1",
+      "vendor": "nokia_sros",
+      "enabled": true,
+      "mtu": 9212
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "name": "1/1/2",
+      "name_normalized": "1/1/2",
+      "vendor": "nokia_sros",
+      "enabled": false,
+      "mtu": 9212
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "name": "1/1/3",
+      "name_normalized": "1/1/3",
+      "vendor": "nokia_sros",
+      "enabled": true,
+      "mtu": 1514,
+      "lag": "lag-10"
+    }
+  ]
+}

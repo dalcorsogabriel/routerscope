@@ -1,0 +1,9 @@
+MAC flags (S -static MAC, D -dynamic MAC, L -locally learned, C -Control MAC
+    SE -Statistics enabled, NM -Non configured MAC, R -Remote PE MAC, P -Pinned MAC)
+
+Routing instance : default-switch
+ Bridging domain : BD100, VLAN : 100
+   MAC                 MAC      Logical          NH     RTR
+   address             flags    interface        Index  ID
+   00:00:5e:00:53:01   D        ge-0/0/1.100
+   00:00:5e:00:53:02   S        ge-0/0/2.100

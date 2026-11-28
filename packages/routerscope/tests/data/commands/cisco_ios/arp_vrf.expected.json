@@ -1,0 +1,35 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "sh ip arp vrf CUST1",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "ip": "198.51.100.1",
+      "mac": "00:00:5e:00:53:11",
+      "interface": "GigabitEthernet0/2",
+      "interface_normalized": "GigabitEthernet0/2",
+      "vendor": "cisco_ios",
+      "vrf": "CUST1"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "ip": "198.51.100.2",
+      "mac": "00:00:5e:00:53:12",
+      "interface": "GigabitEthernet0/2",
+      "interface_normalized": "GigabitEthernet0/2",
+      "vendor": "cisco_ios",
+      "vrf": "CUST1"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+
+               Intf       Intf        LineP              Encap  MTU        BW
+               Name       State       State               Type (byte)    (Kbps)
+--------------------------------------------------------------------------------
+      Gi0/0/0/0          up          up               ARPA  1514     1000000
+      Gi0/0/0/1  admin-down  admin-down               ARPA  1514     1000000
+      Lo0                up          up           Loopback  1500           0

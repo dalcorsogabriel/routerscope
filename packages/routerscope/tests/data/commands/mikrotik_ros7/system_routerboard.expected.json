@@ -1,0 +1,17 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/system routerboard print",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 3
+      },
+      "model": "RB4011iGS+5HacQ2HnD",
+      "serial": "SERIAL0001"
+    }
+  ]
+}

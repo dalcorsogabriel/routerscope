@@ -1,0 +1,34 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/interface print detail without-paging",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 4
+      },
+      "name": "ether1",
+      "name_normalized": "ether1",
+      "vendor": "mikrotik_ros7",
+      "description": "uplink to PE2",
+      "enabled": true,
+      "mtu": 1500
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "name": "ether2",
+      "name_normalized": "ether2",
+      "vendor": "mikrotik_ros7",
+      "enabled": false,
+      "mtu": 1500
+    }
+  ]
+}

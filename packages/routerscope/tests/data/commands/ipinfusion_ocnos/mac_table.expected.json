@@ -1,0 +1,35 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show mac address-table",
+  "vendor": "ipinfusion_ocnos",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "mac": "00:00:5e:00:53:01",
+      "vlan": 1,
+      "interface": "ce1",
+      "interface_normalized": "ce1",
+      "vendor": "ipinfusion_ocnos",
+      "entry_type": "dynamic"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "mac": "00:00:5e:00:53:02",
+      "vlan": 10,
+      "interface": "ce2",
+      "interface_normalized": "ce2",
+      "vendor": "ipinfusion_ocnos",
+      "entry_type": "static"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+===============================================================================
+System Information
+===============================================================================
+System Name            : PE1
+System Type            : 7750 SR-7
+Chassis Topology       : Standalone
+System Version         : B-22.10.R3
+System Contact         :
+System Location        :
+System Coordinates     :
+System Active Slot     : A
+System Up Time         : 12 days, 03:04:05.00 (hr:min:sec)
+===============================================================================

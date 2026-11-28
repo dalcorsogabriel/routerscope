@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/routing bgp session print terse",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64498,
+      "local_as": 64496,
+      "address_families": [],
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

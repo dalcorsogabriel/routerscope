@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show version",
+  "vendor": "ipinfusion_ocnos",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "software": "OcNOS",
+      "version": "6.3.0",
+      "uptime": "3 days, 1 hour, 2 minutes"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "hostname": "R1"
+    }
+  ]
+}

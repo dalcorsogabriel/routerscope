@@ -1,0 +1,8 @@
+*down: administratively down
+^down: standby
+(l): loopback
+(s): spoofing
+Interface                         IP Address/Mask      Physical   Protocol
+GigabitEthernet0/0/0              192.0.2.1/30         up         up
+GigabitEthernet0/0/1              unassigned           *down      down
+LoopBack0                         192.0.2.100/32       up         up(s)

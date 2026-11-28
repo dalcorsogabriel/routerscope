@@ -1,0 +1,32 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router 100 interface",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 8
+      },
+      "name": "to-cust",
+      "name_normalized": "to-cust",
+      "vendor": "nokia_sros",
+      "enabled": true,
+      "vrf": "100"
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "interface": "to-cust",
+      "address": "203.0.113.1/30",
+      "vrf": "100",
+      "secondary": false
+    }
+  ]
+}
