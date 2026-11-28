@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from routerscope.model import split_lines
-from routerscope.vendors._tree.node import ConfigNode
+from routerscope.vendors._tree.node import MAX_DEPTH, ConfigNode, finalize_tree
 
 Dialect = Literal["ios", "xr", "vrp", "sros"]
 
@@ -51,14 +51,6 @@ def _indent_of(raw: str) -> int:
         else:
             break
     return width
-
-
-def _finalize(root: ConfigNode, line_count: int) -> ConfigNode:
-    claimed: set[int] = set()
-    for node in root.walk():
-        claimed.update(node.own_lines)
-    root.own_lines = [n for n in range(1, line_count + 1) if n not in claimed]
-    return root
 
 
 def _extend(node: ConfigNode, line: int) -> None:
@@ -146,7 +138,7 @@ def parse_indented(text: str, dialect: Dialect = "ios") -> ConfigNode:
         node = ConfigNode(node_text, number, end, own_lines=own)
         leaf = any(stripped.startswith(prefix) for prefix in rules.leaf_prefixes)
         _attach(stack, indent, node, push=not leaf)
-    return _finalize(root, total)
+    return finalize_tree(root, total)
 
 
 def _attach(
@@ -155,5 +147,5 @@ def _attach(
     while len(stack) > 1 and stack[-1][0] >= indent:
         stack.pop()
     stack[-1][1].add_child(node)
-    if push:
+    if push and len(stack) < MAX_DEPTH:
         stack.append((indent, node))

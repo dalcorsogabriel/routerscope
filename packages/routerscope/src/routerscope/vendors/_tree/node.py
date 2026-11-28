@@ -8,6 +8,9 @@ from dataclasses import dataclass, field
 
 from routerscope.vendors._tree.words import split_words
 
+MAX_DEPTH = 200
+"""Deepest nesting the parsers build; anything nested further is attached at this level."""
+
 
 @dataclass(eq=False, repr=False)
 class ConfigNode:
@@ -63,10 +66,17 @@ class ConfigNode:
     def flat_words(self) -> tuple[str, ...]:
         """Words of :meth:`path` concatenated: identical for brace and ``set`` forms of Junos."""
         if self._flat is None:
-            if self.parent is None:
+            chain: list[ConfigNode] = []
+            node: ConfigNode | None = self
+            while node is not None and node._flat is None and node.parent is not None:
+                chain.append(node)
+                node = node.parent
+            flat: tuple[str, ...] = node._flat if node is not None and node._flat else ()
+            for item in reversed(chain):
+                flat = flat + tuple(item.words)
+                item._flat = flat
+            if self._flat is None:
                 self._flat = ()
-            else:
-                self._flat = self.parent.flat_words + tuple(self.words)
         return self._flat
 
     def add_child(self, child: ConfigNode) -> ConfigNode:
@@ -82,11 +92,12 @@ class ConfigNode:
         return child
 
     def walk(self, *, include_self: bool = False) -> Iterator[ConfigNode]:
-        """Yield descendants in document (pre-order) order."""
-        if include_self:
-            yield self
-        for child in self.children:
-            yield from child.walk(include_self=True)
+        """Yield descendants in document (pre-order) order (iterative: depth is unbounded)."""
+        stack: list[ConfigNode] = [self] if include_self else list(reversed(self.children))
+        while stack:
+            node = stack.pop()
+            yield node
+            stack.extend(reversed(node.children))
 
     def find(self, pattern: str | re.Pattern[str], *, recursive: bool = True) -> list[ConfigNode]:
         """Descendants whose text matches ``pattern`` (``re.match``: anchored at the start).
@@ -109,3 +120,12 @@ class ConfigNode:
             f"ConfigNode({self.text!r}, lines={self.line_start}-{self.line_end}, "
             f"children={len(self.children)})"
         )
+
+
+def finalize_tree(root: ConfigNode, line_count: int) -> ConfigNode:
+    """Give the root the lines no node claims (blanks and comments) and return it."""
+    claimed: set[int] = set()
+    for node in root.walk():
+        claimed.update(node.own_lines)
+    root.own_lines = [n for n in range(1, line_count + 1) if n not in claimed]
+    return root

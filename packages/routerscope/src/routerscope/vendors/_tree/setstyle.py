@@ -11,8 +11,7 @@ from __future__ import annotations
 from typing import Literal
 
 from routerscope.model import split_lines
-from routerscope.vendors._tree.indent import _finalize
-from routerscope.vendors._tree.node import ConfigNode
+from routerscope.vendors._tree.node import MAX_DEPTH, ConfigNode, finalize_tree
 from routerscope.vendors._tree.words import split_tokens
 
 SetDialect = Literal["junos", "mdcli"]
@@ -91,7 +90,10 @@ def _chunks(tokens: list[str], dialect: SetDialect) -> list[str]:
     n = len(tokens)
     while p < n:
         word = tokens[p]
-        if dialect == "junos":
+        if len(out) >= MAX_DEPTH - 1:
+            out.append(" ".join(tokens[p:]))
+            p = n
+        elif dialect == "junos":
             if out and out[-1] in _JUNOS_NAMED and len(out[-1].split()) == 1:
                 out.append(word)
                 p += 1
@@ -174,4 +176,4 @@ def parse_set(text: str, dialect: SetDialect = "junos") -> ConfigNode:
                 elif mode == "protect":
                     found.protected = True
             parent = found
-    return _finalize(root, len(lines))
+    return finalize_tree(root, len(lines))

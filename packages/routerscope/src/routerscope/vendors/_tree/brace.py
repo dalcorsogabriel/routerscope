@@ -6,8 +6,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from routerscope.model import split_lines
-from routerscope.vendors._tree.indent import _finalize
-from routerscope.vendors._tree.node import ConfigNode
+from routerscope.vendors._tree.node import MAX_DEPTH, ConfigNode, finalize_tree
 
 BraceDialect = Literal["junos", "mdcli"]
 
@@ -40,6 +39,7 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
     stack: list[ConfigNode] = [root]
     cur: list[_Tok] = []
     bracket = 0
+    overflow = 0
     line = 1
     last_line = 1
     i = 0
@@ -60,7 +60,7 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
         return body, cur[0].line, cur[-1].end_line, inactive, protected
 
     def emit(*, is_block: bool, end_line: int) -> None:
-        nonlocal last_line
+        nonlocal last_line, overflow
         body, first, tok_end, inactive, protected = statement()
         end = max(end_line, tok_end)
         node = ConfigNode(
@@ -73,7 +73,10 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
         )
         stack[-1].add_child(node)
         if is_block:
-            stack.append(node)
+            if len(stack) < MAX_DEPTH:
+                stack.append(node)
+            else:
+                overflow += 1
         last_line = max(last_line, end)
         cur.clear()
 
@@ -107,7 +110,10 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
             if cur:
                 emit(is_block=False, end_line=cur[-1].end_line)
             bracket = 0
-            if len(stack) > 1:
+            if overflow:
+                overflow -= 1
+                stack[-1].own_lines.append(line)
+            elif len(stack) > 1:
                 node = stack.pop()
                 node.line_end = max(node.line_end, line)
                 if line not in node.own_lines:
@@ -149,4 +155,4 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
         emit(is_block=False, end_line=cur[-1].end_line)
     for node in stack[1:]:
         node.line_end = max(node.line_end, last_line)
-    return _finalize(root, len(lines))
+    return finalize_tree(root, len(lines))

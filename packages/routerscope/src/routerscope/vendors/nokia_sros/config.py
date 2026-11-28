@@ -24,6 +24,7 @@ from routerscope.vendors._extract import (
     to_asn,
     to_int,
 )
+from routerscope.vendors._flat import anchor_at, is_inactive, values
 from routerscope.vendors._tree import (
     ConfigNode,
     looks_like_set,
@@ -298,30 +299,6 @@ class _MdIface:
     primary: str | None = None
 
 
-def _anchor(node: ConfigNode, k: int) -> ConfigNode:
-    current = node
-    while (
-        current.parent is not None
-        and not current.parent.is_root
-        and len(current.parent.flat_words) >= k
-    ):
-        current = current.parent
-    return current
-
-
-def _values(words: tuple[str, ...]) -> list[str]:
-    if not words:
-        return []
-    if words[0] == "[":
-        out = []
-        for word in words[1:]:
-            if word == "]":
-                break
-            out.append(word)
-        return out
-    return [words[0]]
-
-
 def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     b = Builder(snapshot, vendor)
     book = PeerBook()
@@ -336,7 +313,7 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
 
     for node in root.walk():
         fw = node.flat_words
-        if len(fw) < 2 or fw[0] != "configure" or _inactive(node):
+        if len(fw) < 2 or fw[0] != "configure" or is_inactive(node):
             continue
         rel = fw[1:]
         if rel[:2] == ("system", "name") and len(rel) == 3 and b.device is None:
@@ -349,7 +326,7 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         elif rel[:2] == ("service", "vprn") and len(rel) >= 3:
             vrf = rel[2]
             base = 3
-            anchor = _anchor(node, 3 + 1)
+            anchor = anchor_at(node, 3 + 1)
             rds.setdefault(vrf, (anchor, None))
             if len(rel) >= 5 and rel[3] == "route-distinguisher":
                 rds[vrf] = (anchor, rel[4])
@@ -413,15 +390,6 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
     return b.build()
 
 
-def _inactive(node: ConfigNode) -> bool:
-    current: ConfigNode | None = node
-    while current is not None:
-        if current.inactive:
-            return True
-        current = current.parent
-    return False
-
-
 def _md_iface(
     ifaces: dict[tuple[str | None, str], _MdIface],
     node: ConfigNode,
@@ -430,7 +398,7 @@ def _md_iface(
     vrf: str | None,
 ) -> None:
     key = (vrf, body[1])
-    acc = ifaces.setdefault(key, _MdIface(_anchor(node, len(fw) - len(body) + 2), vrf))
+    acc = ifaces.setdefault(key, _MdIface(anchor_at(node, len(fw) - len(body) + 2), vrf))
     tail = body[2:]
     if not tail:
         return
@@ -442,13 +410,13 @@ def _md_iface(
         acc.mtu = to_int(tail[1])
     elif tail[:3] == ("ipv4", "primary", "address") and len(tail) >= 4:
         acc.primary = tail[3]
-        acc.v4.setdefault(tail[3], (_anchor(node, len(fw) - len(tail) + 4), None))
+        acc.v4.setdefault(tail[3], (anchor_at(node, len(fw) - len(tail) + 4), None))
     elif tail[:3] == ("ipv4", "primary", "prefix-length") and len(tail) >= 4:
         if acc.primary is not None and acc.primary in acc.v4:
             acc.v4[acc.primary] = (acc.v4[acc.primary][0], to_int(tail[3]))
     elif tail[:2] == ("ipv6", "address") and len(tail) >= 3:
         address = tail[2]
-        anchor = _anchor(node, len(fw) - len(tail) + 3)
+        anchor = anchor_at(node, len(fw) - len(tail) + 3)
         length = to_int(tail[4]) if len(tail) >= 5 and tail[3] == "prefix-length" else None
         previous = acc.v6.get(address)
         acc.v6[address] = (anchor, length if length is not None else (previous or (0, None))[1])
@@ -470,7 +438,7 @@ def _md_bgp(
         if parse_ip(name) is None:
             return
         acc = book.peer(vrf, name)
-        peer_nodes.setdefault((vrf, name), _anchor(node, len(fw) - len(attrs)))
+        peer_nodes.setdefault((vrf, name), anchor_at(node, len(fw) - len(attrs)))
     else:
         acc = book.group(vrf, name)
     if not attrs:
@@ -485,9 +453,9 @@ def _md_bgp(
     elif key == "local-as" and len(attrs) >= 3 and attrs[1] == "as-number":
         acc.local_as = to_asn(attrs[2])
     elif key == "import" and attrs[1:2] == ("policy",):
-        acc.imports.extend(v for v in _values(attrs[2:]) if v not in acc.imports)
+        acc.imports.extend(v for v in values(attrs[2:]) if v not in acc.imports)
     elif key == "export" and attrs[1:2] == ("policy",):
-        acc.exports.extend(v for v in _values(attrs[2:]) if v not in acc.exports)
+        acc.exports.extend(v for v in values(attrs[2:]) if v not in acc.exports)
 
 
 def _md_route(
@@ -508,7 +476,7 @@ def _md_route(
     if tail[0] == "next-hop" and len(tail) >= 2:
         nh = tail[1]
         entry = routes.setdefault(
-            (vrf, prefix, nh), (_anchor(node, len(fw) - len(tail) + 2), RouteTarget())
+            (vrf, prefix, nh), (anchor_at(node, len(fw) - len(tail) + 2), RouteTarget())
         )
         target = entry[1]
         address = parse_ip(nh)
@@ -519,7 +487,7 @@ def _md_route(
         attr = tail[2:]
     elif tail[0] == "black-hole":
         entry = routes.setdefault(
-            (vrf, prefix, "black-hole"), (_anchor(node, len(fw) - len(tail) + 1), RouteTarget())
+            (vrf, prefix, "black-hole"), (anchor_at(node, len(fw) - len(tail) + 1), RouteTarget())
         )
         entry[1].blackhole = True
         target = entry[1]
@@ -549,7 +517,7 @@ def _md_prefix(
     if prefix is None:
         return
     afi = "ipv6" if prefix.version == 6 else "ipv4"
-    list_node = _anchor(node, len(fw) - len(rel) + 3 + 1)
+    list_node = anchor_at(node, len(fw) - len(rel) + 3 + 1)
     tail = rel[5:]
     kind = tail[tail.index("type") + 1] if "type" in tail[:-1] else None
     lengths = {

@@ -5,8 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from routerscope.model import split_lines
-from routerscope.vendors._tree.indent import _finalize
-from routerscope.vendors._tree.node import ConfigNode
+from routerscope.vendors._tree.node import ConfigNode, finalize_tree
 from routerscope.vendors._tree.words import split_tokens, unquote
 
 VERBS = frozenset(
@@ -67,7 +66,7 @@ def parse_routeros(text: str) -> ConfigNode:
             continue
         command = ConfigNode(logical, number, end, own_lines=list(own))
         (section or root).add_child(command)
-    return _finalize(root, total)
+    return finalize_tree(root, total)
 
 
 @dataclass

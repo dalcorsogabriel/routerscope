@@ -26,44 +26,10 @@ from routerscope.vendors._extract import (
     to_asn,
     to_int,
 )
+from routerscope.vendors._flat import anchor_at, is_inactive, values
 from routerscope.vendors._tree import ConfigNode, looks_like_set, parse_brace, parse_set
 
 _AFI = {"inet": "ipv4", "inet6": "ipv6", "inet-vpn": "vpnv4", "inet6-vpn": "vpnv6"}
-
-
-def _anchor(node: ConfigNode, k: int) -> ConfigNode:
-    """The topmost ancestor-or-self whose path already holds at least ``k`` words."""
-    current = node
-    while (
-        current.parent is not None
-        and not current.parent.is_root
-        and len(current.parent.flat_words) >= k
-    ):
-        current = current.parent
-    return current
-
-
-def _values(words: tuple[str, ...]) -> list[str]:
-    """Values of ``x`` or ``[ x y z ]`` (the words right after a keyword)."""
-    if not words:
-        return []
-    if words[0] == "[":
-        out = []
-        for word in words[1:]:
-            if word == "]":
-                break
-            out.append(word)
-        return out
-    return [words[0]]
-
-
-def _inactive(node: ConfigNode) -> bool:
-    current: ConfigNode | None = node
-    while current is not None:
-        if current.inactive:
-            return True
-        current = current.parent
-    return False
 
 
 @dataclass
@@ -115,14 +81,14 @@ def parse_junos(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
 
     for node in root.walk():
         fw = node.flat_words
-        if not fw or _inactive(node):
+        if not fw or is_inactive(node):
             continue
         vrf: str | None = None
         base = 0
         if fw[0] == "routing-instances" and len(fw) >= 3:
             vrf = fw[1]
             base = 2
-            vrf_acc = vrfs.setdefault(vrf, _Vrf(_anchor(node, 2)))
+            vrf_acc = vrfs.setdefault(vrf, _Vrf(anchor_at(node, 2)))
             _vrf_stmt(vrf_acc, fw[2:])
         rel = fw[base:]
         if not rel:
@@ -135,7 +101,7 @@ def parse_junos(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
             elif rel[0] == "interfaces" and len(rel) >= 3:
                 _iface_stmt(ifaces, node, rel)
             elif rel[0] == "vlans" and len(rel) >= 4 and rel[2] == "vlan-id":
-                vlans.setdefault(rel[1], (_anchor(node, 2), to_int(rel[3])))
+                vlans.setdefault(rel[1], (anchor_at(node, 2), to_int(rel[3])))
             elif rel[:2] == ("policy-options", "prefix-list") and len(rel) >= 4:
                 _prefix_stmt(prefixes, node, fw, rel)
         if rel[:2] == ("protocols", "bgp"):
@@ -209,17 +175,17 @@ def _vrf_stmt(acc: _Vrf, rest: tuple[str, ...]) -> None:
 
 def _iface_stmt(ifaces: dict[str, _Iface], node: ConfigNode, rel: tuple[str, ...]) -> None:
     name = rel[1]
-    acc = ifaces.setdefault(name, _Iface(_anchor(node, 2)))
+    acc = ifaces.setdefault(name, _Iface(anchor_at(node, 2)))
     tail = rel[2:]
     if tail[0] == "unit" and len(tail) >= 3:
-        unit = ifaces[name].units.setdefault(tail[1], _Unit(_anchor(node, 4)))
+        unit = ifaces[name].units.setdefault(tail[1], _Unit(anchor_at(node, 4)))
         body = tail[2:]
         if body[0] == "description" and len(body) >= 2:
             unit.description = body[1]
         elif body[0] == "disable":
             unit.disabled = True
         elif body[0] == "family" and len(body) >= 4 and body[2] == "address":
-            unit.addresses.setdefault(body[3], _anchor(node, 8))
+            unit.addresses.setdefault(body[3], anchor_at(node, 8))
     elif tail[0] == "description" and len(tail) >= 2:
         acc.description = tail[1]
     elif tail[0] == "disable":
@@ -245,7 +211,7 @@ def _bgp_stmt(
     if body[:1] == ("neighbor",) and len(body) >= 2 and parse_ip(body[1]) is not None:
         peer = body[1]
         body = body[2:]
-        peer_nodes.setdefault((vrf, peer), _anchor(node, len(fw) - len(body)))
+        peer_nodes.setdefault((vrf, peer), anchor_at(node, len(fw) - len(body)))
     if peer is None and group is None:
         return
     if peer is not None:
@@ -265,9 +231,9 @@ def _bgp_stmt(
     elif key == "description" and len(body) >= 2:
         acc.description = body[1]
     elif key == "import":
-        acc.imports.extend(v for v in _values(body[1:]) if v not in acc.imports)
+        acc.imports.extend(v for v in values(body[1:]) if v not in acc.imports)
     elif key == "export":
-        acc.exports.extend(v for v in _values(body[1:]) if v not in acc.exports)
+        acc.exports.extend(v for v in values(body[1:]) if v not in acc.exports)
     elif key == "type" and len(body) >= 2 and body[1] == "internal":
         acc.internal = True
     elif key == "family" and len(body) >= 3:
@@ -287,13 +253,13 @@ def _route_stmt(
     if rel[at + 1 : at + 2] != ("route",) or len(rel) < at + 3:
         return
     prefix = rel[at + 2]
-    route = routes.setdefault((vrf, prefix), _Route(_anchor(node, len(fw) - len(rel) + at + 3)))
+    route = routes.setdefault((vrf, prefix), _Route(anchor_at(node, len(fw) - len(rel) + at + 3)))
     body = rel[at + 3 :]
     if not body:
         return
     key = body[0]
     if key == "next-hop" and len(body) >= 2:
-        first = _values(body[1:])[0] if _values(body[1:]) else None
+        first = values(body[1:])[0] if values(body[1:]) else None
         if first is not None:
             address = parse_ip(first)
             if address is not None:
@@ -327,7 +293,7 @@ def _prefix_stmt(
         return
     afi = "ipv6" if prefix.version == 6 else "ipv4"
     nodes, entries = acc.setdefault((afi, name), ([], []))
-    list_node = _anchor(node, 3 + len(fw) - len(rel))
+    list_node = anchor_at(node, 3 + len(fw) - len(rel))
     if not any(n is list_node for n in nodes):
         nodes.append(list_node)
     if all(e.prefix != prefix for e in entries):
