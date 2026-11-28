@@ -136,7 +136,9 @@ class DropFolder:
                     and known.get("mtime_ns") == stat.st_mtime_ns
                 ):
                     continue
-                if time.time() - stat.st_mtime < self.min_age:
+                # min_age=0 never waits: on Windows a fresh file's mtime can be a few ms
+                # ahead of time.time(), which would otherwise skip it silently.
+                if self.min_age > 0 and time.time() - stat.st_mtime < self.min_age:
                     continue
                 data = path.read_bytes()
             except OSError as exc:  # locked or vanished: try again at the next scan

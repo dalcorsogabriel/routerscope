@@ -171,3 +171,12 @@ def test_failing_callback_is_retried_and_loop_survives(drop: Path) -> None:
     assert folder.poll(flaky) == 1
     assert folder.poll(flaky) == 0
     assert calls == [1, 1]
+
+
+def test_file_with_mtime_slightly_in_the_future_is_imported(drop: Path) -> None:
+    import time
+
+    path = put(drop, "a.cfg", "hostname A\ninterface x\nrouter bgp 1\n")
+    future = time.time() + 0.5  # Windows: a fresh file's mtime can be ahead of time.time()
+    os.utime(path, (future, future))
+    assert len(DropFolder(drop).scan()) == 1
