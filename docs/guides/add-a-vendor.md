@@ -104,3 +104,35 @@ line ranges.
 - Line numbers in `SourceRef` follow `routerscope.model.split_lines` (LF, CR and CRLF only).
 - `parse_command` returns `None` for commands the plugin does not support and raises for output
   it cannot parse; callers isolate plugin errors.
+
+## Writing a config extractor with the tree parsers
+
+Built-in vendors share small tree parsers in `routerscope.vendors._tree` (an internal module:
+copy its approach, do not depend on it from a third-party plugin). Pick the one that matches
+the syntax, then walk the tree:
+
+| Syntax | Parser |
+|---|---|
+| Indentation (IOS, XR, OcNOS, VRP, SR OS classic) | `parse_indented(text, "ios" \| "xr" \| "vrp" \| "sros")` |
+| Braces (Junos, SR OS MD-CLI) | `parse_brace(text, "junos" \| "mdcli")` |
+| `set` / `/configure` lines | `parse_set(text, "junos" \| "mdcli")` |
+| RouterOS `/export` | `parse_routeros(text)` plus `parse_command(node.text)` |
+
+Every `ConfigNode` has `text`, `words`, `children`, `line_start` / `line_end` (the whole block,
+1-based, as `split_lines` numbers them), `path()`, `walk()` and `find(regex)`. Rules of thumb:
+
+- Never raise on unknown syntax. Parsers keep unknown lines as nodes; skip what you cannot read.
+- Use `Builder` from `routerscope.vendors._extract` to collect objects. It builds each model
+  object with validation and silently drops invalid ones, so one bad value never loses the file.
+  Use `PeerBook` for BGP neighbors and groups, `PrefixTable` for prefix lists.
+- Take `ref` from the block the object comes from (`builder.ref(node)`). For objects built from
+  scattered lines use `builder.ref_span(nodes)`.
+- For brace and `set` forms of the same syntax, match on `node.flat_words` (the words of the
+  whole path) instead of the tree shape: both forms then share one extractor (see the Junos and
+  SR OS MD-CLI extractors and `routerscope.vendors._flat`).
+- Keep scopes apart: the same name can exist in several VRFs, so key interfaces and peers by
+  `(vrf, name)`.
+- Avoid per-entry scans of lists (use dicts or sets): configs with tens of thousands of prefix
+  list entries must parse in seconds.
+- Add a synthetic config and an `.expected.json` under `packages/routerscope/tests/data/configs/<vendor>/`
+  (documentation addresses only); see `tests/vendors/test_golden_configs.py`.

@@ -1,0 +1,343 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "huawei_vrp",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 2,
+      "line_end": 2
+    },
+    "hostname": "VRP1"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 23
+      },
+      "name": "GigabitEthernet0/0/1",
+      "name_normalized": "GigabitEthernet0/0/1",
+      "vendor": "huawei_vrp",
+      "description": "uplink",
+      "enabled": true,
+      "mtu": 1600
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 25,
+        "line_end": 27
+      },
+      "name": "GigabitEthernet0/0/2.400",
+      "name_normalized": "GigabitEthernet0/0/2.400",
+      "vendor": "huawei_vrp",
+      "enabled": true,
+      "vrf": "CUST-D"
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 29,
+        "line_end": 30
+      },
+      "name": "LoopBack0",
+      "name_normalized": "LoopBack0",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 32,
+        "line_end": 33
+      },
+      "name": "GigabitEthernet0/0/3",
+      "name_normalized": "GigabitEthernet0/0/3",
+      "vendor": "huawei_vrp",
+      "enabled": false
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 20,
+        "line_end": 20
+      },
+      "interface": "GigabitEthernet0/0/1",
+      "address": "198.51.100.17/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 21,
+        "line_end": 21
+      },
+      "interface": "GigabitEthernet0/0/1",
+      "address": "198.51.100.21/30",
+      "secondary": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 23,
+        "line_end": 23
+      },
+      "interface": "GigabitEthernet0/0/1",
+      "address": "2001:db8:4::1/64",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 27,
+        "line_end": 27
+      },
+      "interface": "GigabitEthernet0/0/2.400",
+      "address": "203.0.113.17/30",
+      "vrf": "CUST-D",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 30,
+        "line_end": 30
+      },
+      "interface": "LoopBack0",
+      "address": "192.0.2.30/32",
+      "secondary": false
+    }
+  ],
+  "vrfs": [
+    {
+      "kind": "vrf",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 14
+      },
+      "name": "CUST-D",
+      "rd": "64496:400",
+      "import_targets": [
+        "64496:400",
+        "64496:401"
+      ],
+      "export_targets": [
+        "64496:400"
+      ],
+      "interfaces": [
+        "GigabitEthernet0/0/2.400"
+      ],
+      "description": "Customer D"
+    }
+  ],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 39,
+        "line_end": 39
+      },
+      "peer": "192.0.2.1",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 40,
+        "line_end": 40
+      },
+      "peer": "198.51.100.18",
+      "remote_as": 64504,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "description": "transit",
+      "import_policies": [
+        "TR-IN"
+      ],
+      "export_policies": [
+        "TR-OUT"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 50,
+        "line_end": 50
+      },
+      "peer": "203.0.113.18",
+      "remote_as": 65540,
+      "local_as": 64496,
+      "vrf": "CUST-D",
+      "address_families": [],
+      "import_policies": [
+        "CUST-IN"
+      ],
+      "export_policies": []
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 58,
+        "line_end": 59
+      },
+      "name": "PL-CUST",
+      "afi": "ipv4",
+      "entries": [
+        {
+          "seq": 10,
+          "action": "permit",
+          "prefix": "203.0.113.0/24",
+          "ge": 25,
+          "le": 28
+        },
+        {
+          "seq": 20,
+          "action": "deny",
+          "prefix": "0.0.0.0/0"
+        }
+      ]
+    },
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 60,
+        "line_end": 60
+      },
+      "name": "PL6",
+      "afi": "ipv6",
+      "entries": [
+        {
+          "seq": 10,
+          "action": "permit",
+          "prefix": "2001:db8::/32"
+        }
+      ]
+    }
+  ],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 53,
+        "line_end": 53
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.18",
+      "blackhole": false,
+      "distance": 40,
+      "tag": 3
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 54,
+        "line_end": 54
+      },
+      "prefix": "192.0.2.160/27",
+      "next_hop": "203.0.113.18",
+      "blackhole": false,
+      "vrf": "CUST-D",
+      "description": "cust-lan"
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 55,
+        "line_end": 55
+      },
+      "prefix": "192.0.2.192/26",
+      "blackhole": true
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 56,
+        "line_end": 56
+      },
+      "prefix": "2001:db8:fff0::/44",
+      "next_hop": "2001:db8:4::2",
+      "blackhole": false
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "vlan_id": 20,
+      "interfaces": []
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "vlan_id": 21,
+      "interfaces": []
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "vlan_id": 22,
+      "interfaces": []
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 7
+      },
+      "vlan_id": 10,
+      "name": "USERS",
+      "interfaces": []
+    }
+  ],
+  "transceivers": []
+}

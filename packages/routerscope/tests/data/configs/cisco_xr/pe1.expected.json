@@ -1,0 +1,284 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "cisco_xr",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 2,
+      "line_end": 2
+    },
+    "hostname": "XR1"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 15,
+        "line_end": 17
+      },
+      "name": "Loopback0",
+      "name_normalized": "Loopback0",
+      "vendor": "cisco_xr",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 19,
+        "line_end": 23
+      },
+      "name": "TenGigE0/0/0/1",
+      "name_normalized": "TenGigE0/0/0/1",
+      "vendor": "cisco_xr",
+      "description": "to-PE1",
+      "enabled": true,
+      "mtu": 9216
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 25,
+        "line_end": 28
+      },
+      "name": "TenGigE0/0/0/2.300",
+      "name_normalized": "TenGigE0/0/0/2.300",
+      "vendor": "cisco_xr",
+      "enabled": false,
+      "vrf": "CUST-C"
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 16
+      },
+      "interface": "Loopback0",
+      "address": "192.0.2.20/32",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 17,
+        "line_end": 17
+      },
+      "interface": "Loopback0",
+      "address": "2001:db8::20/128",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 22,
+        "line_end": 22
+      },
+      "interface": "TenGigE0/0/0/1",
+      "address": "198.51.100.13/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 23,
+        "line_end": 23
+      },
+      "interface": "TenGigE0/0/0/1",
+      "address": "2001:db8:3::1/64",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 27,
+        "line_end": 27
+      },
+      "interface": "TenGigE0/0/0/2.300",
+      "address": "203.0.113.13/30",
+      "vrf": "CUST-C",
+      "secondary": false
+    }
+  ],
+  "vrfs": [
+    {
+      "kind": "vrf",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 11
+      },
+      "name": "CUST-C",
+      "rd": "64496:300",
+      "import_targets": [
+        "64496:300"
+      ],
+      "export_targets": [
+        "64496:300",
+        "64496:301"
+      ],
+      "interfaces": [
+        "TenGigE0/0/0/2.300"
+      ],
+      "description": "Customer C"
+    }
+  ],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 69,
+        "line_end": 71
+      },
+      "peer": "192.0.2.1",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "description": "PE1",
+      "import_policies": [
+        "RP-IN"
+      ],
+      "export_policies": [
+        "PASS-ALL"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 73,
+        "line_end": 79
+      },
+      "peer": "198.51.100.14",
+      "remote_as": 64510,
+      "local_as": 64503,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "description": "transit",
+      "import_policies": [
+        "RP-IN"
+      ],
+      "export_policies": [
+        "PASS-ALL"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 84,
+        "line_end": 88
+      },
+      "peer": "203.0.113.14",
+      "remote_as": 65551,
+      "local_as": 64496,
+      "vrf": "CUST-C",
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "import_policies": [
+        "PASS-ALL"
+      ],
+      "export_policies": [
+        "PASS-ALL"
+      ]
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 30,
+        "line_end": 34
+      },
+      "name": "PS-CUST",
+      "afi": "ipv4",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "203.0.113.0/24",
+          "le": 28
+        },
+        {
+          "action": "permit",
+          "prefix": "198.51.100.0/24"
+        }
+      ]
+    },
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 30,
+        "line_end": 34
+      },
+      "name": "PS-CUST",
+      "afi": "ipv6",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "2001:db8::/32",
+          "ge": 48
+        }
+      ]
+    }
+  ],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 48,
+        "line_end": 48
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.14",
+      "blackhole": false,
+      "distance": 5,
+      "tag": 7
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 49,
+        "line_end": 49
+      },
+      "prefix": "192.0.2.200/32",
+      "blackhole": true
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 53,
+        "line_end": 53
+      },
+      "prefix": "203.0.113.64/26",
+      "next_hop": "203.0.113.14",
+      "interface": "TenGigE0/0/0/2.300",
+      "blackhole": false,
+      "vrf": "CUST-C"
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [],
+  "transceivers": []
+}

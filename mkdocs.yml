@@ -35,6 +35,7 @@ nav:
   - Decisions:
       - decisions/0001-record-architecture-decisions.md
       - decisions/0002-scaffolding-choices.md
+      - decisions/0003-config-tree-parser.md
   - Plans:
       - plans/v0.1.md
   - Project brief: PROJECT_BRIEF.md
