@@ -14,12 +14,12 @@ Three layers, all read-only and local:
 ```python
 from routerscope.services.diff import diff_device, changes
 
-result = diff_device(store, "PE1")            # previous version vs latest
-print(result.render_text())                    # unified-style, parents as context
-for change in result.semantic.changes:         # None if no parsed data is stored
+result = diff_device(store, "PE1")  # previous version vs latest
+print(result.render_text())  # unified-style, parents as context
+for change in result.semantic.changes:  # None if no parsed data is stored
     print(change.label, [(f.field, f.old, f.new) for f in change.fields])
 
-for step in changes(store, "PE1"):             # timeline, noise-only pairs skipped
+for step in changes(store, "PE1"):  # timeline, noise-only pairs skipped
     print(step.old.captured_at, "->", step.new.captured_at, step.text.stats)
 ```
 
@@ -77,6 +77,7 @@ number is reported as `<field>_order`.
 
 ```python
 from routerscope.services.diff import register_kind
+
 register_kind("arp_entry", ("ip", "vrf"), volatile=("age",))
 ```
 
