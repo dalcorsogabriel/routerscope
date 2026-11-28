@@ -1,0 +1,11 @@
+<R1>dis cur
+#
+sysname R1
+#
+interface LoopBack0
+ ip address 198.51.100.1 255.255.255.255
+#
+return
+<R1>display current-configuration | include sysname
+ sysname R1
+<R1>

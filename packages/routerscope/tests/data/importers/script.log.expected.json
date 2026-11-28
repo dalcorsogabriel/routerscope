@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "session",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": null,
+    "captured_at": "2026-01-05T10:22:01+00:00",
+    "importer": "script",
+    "first_line": "user@PE1> show route 203.0.113.0/24"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show route 203.0.113.0/24",
+    "captured_at": "2026-01-05T10:22:01+00:00",
+    "importer": "script",
+    "first_line": ""
+  },
+  {
+    "kind": "command_output",
+    "hostname": "PE1",
+    "vendor": "juniper_junos",
+    "command": "show version",
+    "captured_at": "2026-01-05T10:22:01+00:00",
+    "importer": "script",
+    "first_line": "Hostname: PE1"
+  }
+]

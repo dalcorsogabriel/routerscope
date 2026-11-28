@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": null,
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "securecrt",
+    "first_line": "<R1>display version"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "display version",
+    "captured_at": "2026-01-05T10:22:01+02:00",
+    "importer": "securecrt",
+    "first_line": "Huawei Versatile Routing Platform Software"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "display ip interface brief",
+    "captured_at": "2026-01-05T10:22:05+02:00",
+    "importer": "securecrt",
+    "first_line": "Interface                         IP Address/Mask      Physical   Protocol"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "display bgp peer",
+    "captured_at": "2026-01-05T10:22:11+02:00",
+    "importer": "securecrt",
+    "first_line": " BGP local router ID : 198.51.100.1"
+  }
+]

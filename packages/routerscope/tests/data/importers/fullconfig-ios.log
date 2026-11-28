@@ -1,0 +1,17 @@
+R1#show version
+Cisco IOS Software, ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.9.4a
+R1#show run
+Building configuration...
+
+hostname R1
+!
+interface Loopback0
+ ip address 198.51.100.1 255.255.255.255
+!
+end
+R1#show run interface Loopback0
+interface Loopback0
+ ip address 198.51.100.1 255.255.255.255
+R1#show running-config | include hostname
+hostname R1
+R1#

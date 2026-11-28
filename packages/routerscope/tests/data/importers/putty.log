@@ -1,0 +1,11 @@
+=~=~=~=~=~=~=~=~=~=~=~= PuTTY log 2026.01.05 10:22:01 =~=~=~=~=~=~=~=~=~=~=~=
+R1#show version
+Cisco IOS Software, ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.9.4a
+R1 uptime is 3 weeks, 1 day, 4 hours, 12 minutes
+R1#show ip route 203.0.113.0
+Routing entry for 203.0.113.0/24
+  Known via "bgp 64496", distance 200, metric 0, type internal
+  Last update from 192.0.2.2 02:11:07 ago
+R1#show running-config | include hostname
+hostname R1
+R1#

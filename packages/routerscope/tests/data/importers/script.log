@@ -1,0 +1,18 @@
+Script started on 2026-01-05 10:22:01+00:00 [COMMAND="ssh PE1" TERM="xterm" TTY="/dev/pts/0" COLUMNS="120" LINES="30"]
+user@PE1> show route 203.0.113.0/24
+
+inet.0: 10 destinations, 10 routes (10 active, 0 holddown, 0 hidden)
++ = Active Route, - = Last Active, * = Both
+
+203.0.113.0/24     *[BGP/170] 1d 02:11:07, localpref 100
+                      AS path: 64497 I, validation-state: unverified
+                    > to 192.0.2.2 via ge-0/0/0.0
+
+user@PE1> show version
+Hostname: PE1
+Model: mx204
+Junos: 23.4R2.13
+
+user@PE1> exit
+
+Script done on 2026-01-05 10:40:00+00:00 [COMMAND_EXIT_CODE="0"]
