@@ -26,6 +26,7 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Storage: storage.md
+  - Diff: diff.md
   - Importers:
       - importers.md
       - importers-git.md
