@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": null,
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "<R1>dis cur"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "dis cur",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "#"
+  },
+  {
+    "kind": "config",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "dis cur",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "#"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "huawei_vrp",
+    "command": "display current-configuration | include sysname",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": " sysname R1"
+  }
+]

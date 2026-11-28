@@ -1,0 +1,10 @@
+user@PE1> show configuration | display set
+set system host-name PE1
+set interfaces lo0 unit 0 family inet address 198.51.100.10/32
+user@PE1> show configuration interfaces
+lo0 {
+    unit 0;
+}
+user@PE1> show configuration | match host-name
+host-name PE1;
+user@PE1>

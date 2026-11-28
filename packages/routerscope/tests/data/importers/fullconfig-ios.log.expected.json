@@ -1,0 +1,56 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": null,
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "R1#show version"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show version",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "Cisco IOS Software, ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.9.4a"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show run",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "Building configuration..."
+  },
+  {
+    "kind": "config",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show run",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "Building configuration..."
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show run interface Loopback0",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "interface Loopback0"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "cisco_ios",
+    "command": "show running-config | include hostname",
+    "captured_at": "2026-01-06T13:46:40+02:00",
+    "importer": "plain",
+    "first_line": "hostname R1"
+  }
+]

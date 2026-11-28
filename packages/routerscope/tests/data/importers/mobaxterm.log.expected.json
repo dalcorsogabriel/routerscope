@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "session",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": null,
+    "captured_at": "2026-01-06T23:58:30+02:00",
+    "importer": "mobaxterm",
+    "first_line": "[admin@R1] > /ip address print"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": "/ip address print",
+    "captured_at": "2026-01-06T23:58:30+02:00",
+    "importer": "mobaxterm",
+    "first_line": "Columns: ADDRESS, NETWORK, INTERFACE"
+  },
+  {
+    "kind": "command_output",
+    "hostname": "R1",
+    "vendor": "mikrotik_ros7",
+    "command": "/system resource print",
+    "captured_at": "2026-01-07T00:01:02+02:00",
+    "importer": "mobaxterm",
+    "first_line": "                   uptime: 5w2d3h"
+  }
+]
