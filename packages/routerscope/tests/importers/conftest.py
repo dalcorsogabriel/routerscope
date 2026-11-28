@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 from collections.abc import Callable
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,8 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
                 item.add_marker(marker)
 
 
+NL = bytes([10])
+NLS = chr(10)
 T0 = "2026-01-10T10:00:00+02:00"
 
 
@@ -66,6 +69,35 @@ class Repo:
 
     def remove(self, rel: str) -> None:
         (self.path / rel).unlink()
+
+    def fast_import(self, commits: list[tuple[datetime, dict[str, str]]]) -> None:
+        """Create many commits on ``main`` with one ``git fast-import`` process.
+
+        Each item is (committer time with UTC offset, {path: content}).
+        """
+        assert GIT is not None
+        out = bytearray()
+
+        def data(raw: bytes) -> None:
+            out.extend(b"data %d" % len(raw) + NL + raw + NL)
+
+        for when, files in commits:
+            offset = when.utcoffset() or timedelta(0)
+            minutes = int(offset.total_seconds() // 60)
+            sign = "+" if minutes >= 0 else "-"
+            tz = f"{sign}{abs(minutes) // 60:02d}{abs(minutes) % 60:02d}"
+            stamp = f"Test <test@example.com> {int(when.timestamp())} {tz}"
+            out.extend(f"commit refs/heads/main{NLS}committer {stamp}{NLS}".encode())
+            data(b"change")
+            for path, content in files.items():
+                out.extend(f"M 100644 inline {path}{NLS}".encode())
+                data(content.encode("utf-8"))
+        subprocess.run(
+            [GIT, "-C", str(self.path), "fast-import", "--quiet"],
+            input=bytes(out),
+            check=True,
+            capture_output=True,
+        )
 
     def commit(self, when: str = T0, message: str = "change") -> str:
         self.git("add", "-A")

@@ -82,9 +82,9 @@ def test_non_utf8_config_is_kept_as_bytes(make_repo: Make) -> None:
 def test_filters(cfg: Cfg, make_repo: Make) -> None:
     repo = make_repo("group")
     repo.write("router.db", "r1;cisco;up\n")
-    for day in (1, 2, 3):
-        repo.write("configs/r1", cfg("r1", day))
-        repo.commit(f"2026-05-0{day}T00:00:00+00:00")
+    repo.fast_import(
+        [(datetime(2026, 5, day, tzinfo=UTC), {"configs/r1": cfg("r1", day)}) for day in (1, 2, 3)]
+    )
     importer = RancidImporter(repo.path, since=datetime(2026, 5, 2, tzinfo=UTC))
     assert [i.captured_at.day for i in importer.items()] == [2, 3]
 

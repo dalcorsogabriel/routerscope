@@ -112,10 +112,12 @@ def test_parse_model_file(tmp_path: Path) -> None:
 
 def test_filters(cfg: Cfg, make_repo: Make) -> None:
     repo = make_repo("oxi")
-    for day in (1, 2, 3):
-        repo.write("a", cfg("a", day))
-        repo.write("b", cfg("b", day))
-        repo.commit(f"2026-03-0{day}T00:00:00+00:00")
+    repo.fast_import(
+        [
+            (datetime(2026, 3, day, tzinfo=UTC), {"a": cfg("a", day), "b": cfg("b", day)})
+            for day in (1, 2, 3)
+        ]
+    )
     items = OxidizedImporter(
         repo.path,
         since=datetime(2026, 3, 2, tzinfo=UTC),

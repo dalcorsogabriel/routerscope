@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -75,10 +75,15 @@ def test_non_utf8_text_is_returned_as_bytes(make_repo: Make) -> None:
 
 def test_since_until_and_paths(cfg: Cfg, make_repo: Make) -> None:
     repo = make_repo("r")
-    for day in (1, 2, 3, 4):
-        repo.write("a.cfg", cfg("a", day))
-        repo.write("b.txt", cfg("b", day))
-        repo.commit(f"2026-02-0{day}T12:00:00+00:00")
+    repo.fast_import(
+        [
+            (
+                datetime(2026, 2, day, 12, tzinfo=UTC),
+                {"a.cfg": cfg("a", day), "b.txt": cfg("b", day)},
+            )
+            for day in (1, 2, 3, 4)
+        ]
+    )
     got = [
         v.committed_at.day
         for v in walk_history(
@@ -232,12 +237,14 @@ def test_read_blob_missing_object(make_repo: Make) -> None:
 
 def test_300_commits_smoke(cfg: Cfg, make_repo: Make) -> None:
     repo = make_repo("r")
-    start = datetime(2026, 1, 1, tzinfo=UTC)
-    for i in range(300):
-        repo.write(f"r{i % 5}", cfg(f"r{i % 5}", i))
-        repo.commit((start + timedelta(minutes=i)).isoformat())
+    start = datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=-3)))
+    repo.fast_import(
+        [(start + timedelta(minutes=i), {f"r{i % 5}": cfg(f"r{i % 5}", i)}) for i in range(300)]
+    )
     began = time.perf_counter()
     versions = list(walk_history(repo.path))
     assert len(versions) == 300
     assert versions[0].committed_at < versions[-1].committed_at
+    assert versions[0].committed_at.utcoffset() == timedelta(hours=-3)
+    assert versions[-1].content == cfg("r4", 299)
     assert time.perf_counter() - began < 30
