@@ -38,18 +38,21 @@ Python 3.12+, uv workspace, hatchling, ruff, mypy --strict, pytest + hypothesis,
 Feature branch → small Conventional Commits → PR to `main` (even solo) → CI green → merge **locally** (`git merge --no-ff <branch>`, then `git push origin main`; never the GitHub merge button or `gh pr merge`, which author commits with the profile's real name); close issues via PR; update CHANGELOG and docs per feature; ADR for significant decisions.
 
 ## Decisions
-- ADR 0001 (ADRs), ADR 0002 (license, uv workspace, tooling).
+- ADR 0001 (ADRs), ADR 0002 (license, uv workspace, tooling), ADR 0003 (config tree parser).
 - Public visibility is switched by the maintainer by hand (a local safety hook blocks it for Claude).
 - Commits use the repo-local identity `dalcorsogabriel` + GitHub noreply e-mail (no real name). Check `git log --format='%an %cn'` before every push.
 - `netcmd-safety` is allowlist-based and fails closed: control characters (Tab included), non-ASCII lookalikes and backslashes are never safe; RouterOS reads need known menus, a read verb and exact-name parameters. Cases are from documented CLI behaviour, not real devices yet.
 - The project is labelled **experimental** everywhere (READMEs, docs home, package READMEs, PyPI classifier `2 - Pre-Alpha`, repo description) until the maintainer has tested it hands-on as a user and says otherwise.
 - Long-running reads (`print follow`, `monitor` without `once`) are classified read; the collector must enforce its own timeout.
+- ADR 0003: own config tree parsers, no `hier_config`/`clijson`; `ciscoconfparse2` is GPL and stays out of the core.
+- Parsers always run on the stored, redacted text; `Store.add_parsed` re-checks every parsed string with the redactor.
+- Importers keep content byte-exact as found (Oxidized/RANCID headers included); time comes from log stamps, then headers, then file mtime, never naive.
 
 ## Current state
-Phase 0 done. Phase 1 Step 1 done: `netcmd-safety`, `netprompt` and `netaddr-search` merged (PRs #94–#96), 1600+ tests, three security review rounds on `netcmd-safety`. Repo is public (history recreated clean in Nov 2026). The `routerscope` app package is still a skeleton.
+Phase 1 Step 1 done (three libs). Step 2 and most of Step 3 merged: model + plugin registry, SQLite/FTS5 store with redaction, ingestion pipeline, importers (session logs, paste, drop folder, Oxidized, RANCID), config tree parsers + `parse_config` for all seven vendors (PRs #100–#106). In progress on branches: fixture sanitizer (PR #102, second security-review fixes), search service (#36), state command parsers (Step 3.5), semantic/config diff (#35). Repo is public.
 
 ## Next steps
-1. Phase 1 Step 2 (`docs/plans/v0.1.md`): model, storage (SQLite FTS5), fixture sanitizer, vendor plugin protocol. Then importers → parsers → search/diff/locate → CLI → minimal UI → benchmarks → docs → v0.1.0.
+1. Finish Step 3/4 (`docs/plans/v0.1.md`): sanitizer merge, command parsers, search, diff, then CLI (#37), minimal UI (#38, ADR Svelte vs HTMX), benchmarks (#40), support matrix (#41), release (#42).
 2. When v0.1 is usable end to end, tell the maintainer it is ready for a hands-on test as a real user, with a short step-by-step test script (install, import, search, diff). Fix what they find before tagging v0.1.0.
 3. Ask the maintainer for real device outputs via `contexto/`; sanitize before committing.
 4. ADRs pending: web UI framework (Svelte vs HTMX), release tooling.
