@@ -20,11 +20,13 @@ capture (collector | proxy | importers | paste)
    → segmentation into (device, command, output, timestamp, source)
    → parsers (state → normalized models) + config parser (hierarchical tree)
    → neutral model (Device, Interface, IPAddress, VRF, BGPPeer, Policy, PrefixList, ACL,
-                    StaticRoute, IGP, LAG, VLAN, Transceiver, Version)
+                    StaticRoute, IGP, LAG, VLAN, Transceiver, Version, ARPEntry, MACEntry)
    → storage (SQLite + FTS5; snapshots versioned by timestamp)
    → services: search | diff | locate | refs/where-used | suggestions | simulate | export
    → interfaces: CLI (Typer) | local API (FastAPI) | local web UI | MCP server
 ```
+
+`ARPEntry` (ip, canonical MAC, interface, vrf) and `MACEntry` (canonical MAC, vlan, port, `static`/`dynamic`, bridge domain / service / bridge name) come from state commands only; ages and timers are deliberately not modelled so repeated captures diff cleanly. See [Command parsers](commands.md).
 
 ## Stack
 
