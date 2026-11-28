@@ -423,3 +423,24 @@ def test_reentered_interface_blocks_merge(vendor: str, text: str) -> None:
     assert len(ifaces) == 1
     assert (ifaces[0].description, ifaces[0].mtu) == ("a", 1500)
     assert (ifaces[0].ref.line_start, ifaces[0].ref.line_end) == (1, 5)
+
+
+def test_vrp_display_header_lines_are_comments() -> None:
+    from routerscope.vendors._tree import parse_indented
+
+    text = (
+        "!Software Version V800R021C10SPC100\n"
+        "!Last configuration was updated at 2026-01-05 10:00:00+00:00\n"
+        "#\n"
+        " sysname PE1\n"
+        "#\n"
+        "interface GigabitEthernet0/0/1\n"
+        " ip address 192.0.2.1 255.255.255.0\n"
+        "#\n"
+        "return\n"
+    )
+    root = parse_indented(text, "vrp")
+    assert [(n.text, n.depth, n.line_start) for n in root.children][:2] == [
+        ("sysname PE1", 1, 4),
+        ("interface GigabitEthernet0/0/1", 1, 6),
+    ]
