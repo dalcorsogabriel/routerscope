@@ -1,0 +1,4 @@
+Interface              IP-Address         Status                Protocol
+ce1                    192.0.2.1          up                    up
+ce2                    unassigned         admin down            down
+lo                     192.0.2.100        up                    up

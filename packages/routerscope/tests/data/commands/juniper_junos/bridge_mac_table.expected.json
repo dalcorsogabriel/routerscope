@@ -1,0 +1,37 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show bridge mac-table",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "mac": "00:00:5e:00:53:01",
+      "vlan": 100,
+      "interface": "ge-0/0/1.100",
+      "interface_normalized": "ge-0/0/1.100",
+      "vendor": "juniper_junos",
+      "entry_type": "dynamic",
+      "domain": "BD100"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "mac": "00:00:5e:00:53:02",
+      "vlan": 100,
+      "interface": "ge-0/0/2.100",
+      "interface_normalized": "ge-0/0/2.100",
+      "vendor": "juniper_junos",
+      "entry_type": "static",
+      "domain": "BD100"
+    }
+  ]
+}

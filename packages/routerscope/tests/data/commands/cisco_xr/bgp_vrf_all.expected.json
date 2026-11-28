@@ -1,0 +1,39 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show bgp vrf all summary",
+  "vendor": "cisco_xr",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 15,
+        "line_end": 15
+      },
+      "peer": "198.51.100.2",
+      "remote_as": 64510,
+      "local_as": 64496,
+      "vrf": "CUST1",
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 25,
+        "line_end": 25
+      },
+      "peer": "203.0.113.2",
+      "remote_as": 64511,
+      "local_as": 64496,
+      "vrf": "CUST2",
+      "address_families": [],
+      "state": "Idle (Admin)",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

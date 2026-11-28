@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show version",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "software": "IOS-XE",
+      "version": "17.03.04",
+      "platform": "CSR1000V",
+      "uptime": "2 weeks, 3 days, 4 hours, 5 minutes"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 13
+      },
+      "hostname": "R1",
+      "model": "CSR1000V",
+      "serial": "SERIAL0001"
+    }
+  ]
+}

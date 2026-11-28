@@ -1,0 +1,46 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show ip arp",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "ip": "192.0.2.1",
+      "mac": "00:00:5e:00:53:01",
+      "interface": "GigabitEthernet0/0",
+      "interface_normalized": "GigabitEthernet0/0",
+      "vendor": "cisco_ios"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "ip": "192.0.2.2",
+      "mac": "00:00:5e:00:53:02",
+      "interface": "GigabitEthernet0/0",
+      "interface_normalized": "GigabitEthernet0/0",
+      "vendor": "cisco_ios"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "ip": "198.51.100.7",
+      "mac": "00:00:5e:00:53:03",
+      "interface": "GigabitEthernet0/1",
+      "interface_normalized": "GigabitEthernet0/1",
+      "vendor": "cisco_ios"
+    }
+  ]
+}

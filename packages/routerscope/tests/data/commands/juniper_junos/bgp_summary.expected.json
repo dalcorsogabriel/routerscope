@@ -1,0 +1,64 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show bgp summary | no-more",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 9
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64498,
+      "address_families": [],
+      "state": "Active",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 11,
+        "line_end": 12
+      },
+      "peer": "198.51.100.2",
+      "remote_as": 64510,
+      "vrf": "CUST1",
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 13,
+        "line_end": 14
+      },
+      "peer": "2001:db8:1234:5678:9abc:def0:1234:5678",
+      "remote_as": 64499,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Interface                      Status         Protocol Description
+Gi0/0                          up             up       uplink to PE2
+Gi0/1                          admin down     down
+Gi0/2                          down           down     spare port
+Lo0                            up             up       router id

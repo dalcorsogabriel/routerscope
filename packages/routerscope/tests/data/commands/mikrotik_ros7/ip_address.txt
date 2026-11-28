@@ -1,0 +1,6 @@
+Flags: D - DYNAMIC; X - DISABLED, I - INVALID
+Columns: ADDRESS, NETWORK, INTERFACE
+#   ADDRESS            NETWORK       INTERFACE
+0   192.0.2.1/30       192.0.2.0     ether1
+1 X 198.51.100.1/24    198.51.100.0  ether2
+2 D 203.0.113.1/24     203.0.113.0   bridge1

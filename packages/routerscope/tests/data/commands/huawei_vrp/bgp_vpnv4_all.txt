@@ -1,0 +1,13 @@
+ BGP local router ID : 192.0.2.1
+ Local AS number : 64496
+ Total number of peers : 2                 Peers in established state : 2
+
+  Peer of IPv4-family for vpn instance :
+
+  VPN-Instance CUST1, router ID 192.0.2.1:
+  Peer            V          AS  MsgRcvd  MsgSent  OutQ  Up/Down       State PrefRcv
+  198.51.100.2    4       64510        5        6     0 00:00:30 Established       0
+
+  VPN-Instance CUST2, router ID 192.0.2.1:
+  Peer            V          AS  MsgRcvd  MsgSent  OutQ  Up/Down       State PrefRcv
+  203.0.113.2     4       64511        7        8     0 00:00:40 Established       1

@@ -1,0 +1,6 @@
+Flags: X - disabled, I - invalid, H - DHCP, D - dynamic, P - published, C - complete
+Columns: ADDRESS, MAC-ADDRESS, INTERFACE
+#    ADDRESS      MAC-ADDRESS        INTERFACE
+0 DC 192.0.2.2    00:00:5E:00:53:02  ether1
+1 D  192.0.2.3                       ether1
+2  C 192.0.2.4    00:00:5E:00:53:04  bridge1

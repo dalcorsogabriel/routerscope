@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "display version",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "software": "VRP",
+      "version": "5.170 (NE40E V800R011C00SPC607B607)",
+      "platform": "NE40E-X8A",
+      "uptime": "10 days, 1 hour, 2 minutes"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "model": "NE40E-X8A"
+    }
+  ]
+}

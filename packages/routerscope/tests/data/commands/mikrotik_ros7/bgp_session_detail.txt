@@ -1,0 +1,10 @@
+Flags: E - ESTABLISHED
+ 0 E name="peer-1-1"
+     remote.address=192.0.2.2 .as=64497 .id=192.0.2.2 .capabilities=mp,rr,enhanced-refresh,as4 .afi=ip
+     .messages=1234 .bytes=23456 .eor=""
+     local.address=192.0.2.1 .as=64496 .id=192.0.2.1 .capabilities=mp,rr,enhanced-refresh,gr,as4 .afi=ip
+     output.procid=20 input.procid=20 multihop=no hold-time=3m keepalive-time=1m uptime=1d2h3m
+     prefix-count=5
+ 1   name="peer-2-1"
+     remote.address=198.51.100.2 .as=64510 .id=198.51.100.2
+     local.address=198.51.100.1 .as=64496 vrf=CUST1

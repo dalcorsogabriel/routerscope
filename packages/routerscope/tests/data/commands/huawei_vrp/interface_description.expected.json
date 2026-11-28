@@ -1,0 +1,45 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "display interface description",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "name": "GE0/0/0",
+      "name_normalized": "GigabitEthernet0/0/0",
+      "vendor": "huawei_vrp",
+      "description": "to PE2",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "name": "GE0/0/1",
+      "name_normalized": "GigabitEthernet0/0/1",
+      "vendor": "huawei_vrp",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "name": "Eth-Trunk1",
+      "name_normalized": "Eth-Trunk1",
+      "vendor": "huawei_vrp",
+      "description": "core bundle",
+      "enabled": true
+    }
+  ]
+}

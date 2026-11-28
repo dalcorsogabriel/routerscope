@@ -1,0 +1,6 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show ip bgp summary",
+  "vendor": "cisco_ios",
+  "objects": []
+}

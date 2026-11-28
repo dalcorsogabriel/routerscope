@@ -1,0 +1,65 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "display ip interface brief",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "name": "GigabitEthernet0/0/0",
+      "name_normalized": "GigabitEthernet0/0/0",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "interface": "GigabitEthernet0/0/0",
+      "address": "192.0.2.1/30",
+      "secondary": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "name": "GigabitEthernet0/0/1",
+      "name_normalized": "GigabitEthernet0/0/1",
+      "vendor": "huawei_vrp",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "name": "LoopBack0",
+      "name_normalized": "LoopBack0",
+      "vendor": "huawei_vrp",
+      "enabled": true
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "interface": "LoopBack0",
+      "address": "192.0.2.100/32",
+      "secondary": false
+    }
+  ]
+}

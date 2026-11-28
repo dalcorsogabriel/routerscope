@@ -1,0 +1,3 @@
+VLAN  Mac Address      Type     Ports
+1     0000.5e00.5301   dynamic  ce1
+10    0000.5e00.5302   static   ce2

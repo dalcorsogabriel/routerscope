@@ -1,0 +1,3 @@
+IP Address      Age      MAC Address      Interface    Type
+192.0.2.2       00:01:12 0000.5e00.5302   ce1          Dynamic
+192.0.2.3       -        0000.5e00.5303   ce1          Static

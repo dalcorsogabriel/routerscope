@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/ip arp print",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "ip": "192.0.2.2",
+      "mac": "00:00:5e:00:53:02",
+      "interface": "ether1",
+      "interface_normalized": "ether1",
+      "vendor": "mikrotik_ros7"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "ip": "192.0.2.4",
+      "mac": "00:00:5e:00:53:04",
+      "interface": "bridge1",
+      "interface_normalized": "bridge1",
+      "vendor": "mikrotik_ros7"
+    }
+  ]
+}

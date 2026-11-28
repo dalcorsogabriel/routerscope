@@ -1,0 +1,43 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show ip interface brief",
+  "vendor": "ipinfusion_ocnos",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "name": "ce1",
+      "name_normalized": "ce1",
+      "vendor": "ipinfusion_ocnos",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "name": "ce2",
+      "name_normalized": "ce2",
+      "vendor": "ipinfusion_ocnos",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "name": "lo",
+      "name_normalized": "lo",
+      "vendor": "ipinfusion_ocnos",
+      "enabled": true
+    }
+  ]
+}

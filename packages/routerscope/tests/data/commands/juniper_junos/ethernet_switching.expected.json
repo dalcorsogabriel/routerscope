@@ -1,0 +1,49 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show ethernet-switching table",
+  "vendor": "juniper_junos",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "mac": "00:00:5e:00:53:01",
+      "interface": "ge-0/0/1.0",
+      "interface_normalized": "ge-0/0/1.0",
+      "vendor": "juniper_junos",
+      "entry_type": "dynamic",
+      "domain": "VLAN10"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "mac": "00:00:5e:00:53:02",
+      "interface": "ge-0/0/2.0",
+      "interface_normalized": "ge-0/0/2.0",
+      "vendor": "juniper_junos",
+      "entry_type": "static",
+      "domain": "VLAN20"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "mac": "00:00:5e:00:53:03",
+      "interface": "ge-0/0/3.0",
+      "interface_normalized": "ge-0/0/3.0",
+      "vendor": "juniper_junos",
+      "entry_type": "dynamic",
+      "domain": "v30"
+    }
+  ]
+}

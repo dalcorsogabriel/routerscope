@@ -1,0 +1,21 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "display arp vpn-instance CUST1",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "ip": "198.51.100.2",
+      "mac": "00:00:5e:00:53:03",
+      "interface": "GE0/0/1",
+      "interface_normalized": "GigabitEthernet0/0/1",
+      "vendor": "huawei_vrp",
+      "vrf": "CUST1"
+    }
+  ]
+}

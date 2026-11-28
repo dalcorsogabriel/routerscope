@@ -1,0 +1,23 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router \"VPRN1\" bgp summary",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 12
+      },
+      "peer": "198.51.100.2",
+      "remote_as": 64510,
+      "local_as": 64496,
+      "vrf": "VPRN1",
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

@@ -18,9 +18,9 @@ from ipaddress import (
 )
 from typing import Any, Literal, Self
 
-from netaddr_search import normalize_interface
+from netaddr_search import normalize_interface, normalize_mac
 from netcmd_safety import VENDORS
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from routerscope.model._base import Asn, Frozen, VendorId
 from routerscope.model.provenance import SourceRef
@@ -47,6 +47,24 @@ def _with_normalized_name(data: Any) -> Any:
             family = vendor if vendor in VENDORS else None
             data = {**data, "name_normalized": normalize_interface(name, family)}
     return data
+
+
+def _with_normalized_port(data: Any) -> Any:
+    """Fill ``interface_normalized`` from ``interface`` (and ``vendor``) if not supplied."""
+    if isinstance(data, dict) and data.get("interface_normalized") in (None, ""):
+        name = data.get("interface")
+        if isinstance(name, str) and name:
+            vendor = data.get("vendor")
+            family = vendor if vendor in VENDORS else None
+            data = {**data, "interface_normalized": normalize_interface(name, family)}
+    return data
+
+
+def _canonical_mac(value: str) -> str:
+    mac = normalize_mac(value)
+    if mac is None:
+        raise ValueError(f"not a MAC address: {value!r}")
+    return mac
 
 
 class Device(ParsedObject):
@@ -290,6 +308,53 @@ class Transceiver(ParsedObject):
     temperature_c: float | None = Field(default=None, allow_inf_nan=False)
 
 
+class ARPEntry(ParsedObject):
+    """An ARP / IPv6 neighbor cache entry. Age and timers are deliberately not modelled."""
+
+    kind: Literal["arp_entry"] = "arp_entry"
+    ip: IPv4Address | IPv6Address
+    mac: str = Field(description="Canonical lowercase aa:bb:cc:dd:ee:ff.")
+    interface: str | None = Field(default=None, description="Interface name as typed.")
+    interface_normalized: str = ""
+    vendor: VendorId | None = Field(default=None, description="Selects the naming family.")
+    vrf: str | None = None
+
+    @field_validator("mac")
+    @classmethod
+    def _mac(cls, value: str) -> str:
+        return _canonical_mac(value)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize(cls, data: Any) -> Any:
+        return _with_normalized_port(data)
+
+
+class MACEntry(ParsedObject):
+    """A MAC address table (FDB) entry. Age is deliberately not modelled."""
+
+    kind: Literal["mac_entry"] = "mac_entry"
+    mac: str = Field(description="Canonical lowercase aa:bb:cc:dd:ee:ff.")
+    vlan: int | None = Field(default=None, ge=0, le=4094)
+    interface: str | None = Field(default=None, description="Port / source as typed.")
+    interface_normalized: str = ""
+    vendor: VendorId | None = Field(default=None, description="Selects the naming family.")
+    entry_type: Literal["static", "dynamic"] | None = None
+    domain: str | None = Field(
+        default=None, description="Bridge domain, VPLS service, bridge or VLAN name as printed."
+    )
+
+    @field_validator("mac")
+    @classmethod
+    def _mac(cls, value: str) -> str:
+        return _canonical_mac(value)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize(cls, data: Any) -> Any:
+        return _with_normalized_port(data)
+
+
 ParsedObjectUnion = (
     Device
     | Version
@@ -305,4 +370,6 @@ ParsedObjectUnion = (
     | LAG
     | VLAN
     | Transceiver
+    | ARPEntry
+    | MACEntry
 )

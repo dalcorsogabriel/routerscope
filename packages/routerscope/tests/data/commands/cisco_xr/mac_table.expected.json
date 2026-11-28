@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show l2vpn forwarding bridge-domain mac-address location 0/0/CPU0",
+  "vendor": "cisco_xr",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "mac": "00:00:5e:00:53:01",
+      "interface": "Gi0/0/0/0.100",
+      "interface_normalized": "GigabitEthernet0/0/0/0.100",
+      "vendor": "cisco_xr",
+      "entry_type": "dynamic"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "mac": "00:00:5e:00:53:02",
+      "interface": "Gi0/0/0/1.100",
+      "interface_normalized": "GigabitEthernet0/0/0/1.100",
+      "vendor": "cisco_xr",
+      "entry_type": "static"
+    }
+  ]
+}

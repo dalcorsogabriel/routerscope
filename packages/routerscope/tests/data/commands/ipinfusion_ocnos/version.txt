@@ -1,0 +1,5 @@
+IP Infusion OcNOS version 6.3.0 06/22/2022 - 10:21
+Copyright (c) 2016 - 2022 IP Infusion Inc. All Rights Reserved.
+
+Hostname: R1
+R1 uptime is 3 days, 1 hour, 2 minutes

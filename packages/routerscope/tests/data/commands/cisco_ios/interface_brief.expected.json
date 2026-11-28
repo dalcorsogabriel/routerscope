@@ -1,0 +1,67 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "sh ip int br",
+  "vendor": "cisco_ios",
+  "objects": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 2,
+        "line_end": 2
+      },
+      "name": "GigabitEthernet0/0",
+      "name_normalized": "GigabitEthernet0/0",
+      "vendor": "cisco_ios",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 3,
+        "line_end": 3
+      },
+      "name": "GigabitEthernet0/1",
+      "name_normalized": "GigabitEthernet0/1",
+      "vendor": "cisco_ios",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "name": "GigabitEthernet0/2",
+      "name_normalized": "GigabitEthernet0/2",
+      "vendor": "cisco_ios",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "name": "Loopback0",
+      "name_normalized": "Loopback0",
+      "vendor": "cisco_ios",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "name": "Port-channel1.100010",
+      "name_normalized": "Port-channel1.100010",
+      "vendor": "cisco_ios",
+      "enabled": true
+    }
+  ]
+}

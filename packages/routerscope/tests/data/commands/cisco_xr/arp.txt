@@ -1,0 +1,4 @@
+Address         Age        Hardware Addr   State      Type  Interface
+192.0.2.1       -          0000.5e00.5301  Interface  ARPA  GigabitEthernet0/0/0/0
+192.0.2.2       00:00:12   0000.5e00.5302  Dynamic    ARPA  GigabitEthernet0/0/0/0
+192.0.2.3       00:00:00   0000.0000.0000  Incomplete ARPA  GigabitEthernet0/0/0/0

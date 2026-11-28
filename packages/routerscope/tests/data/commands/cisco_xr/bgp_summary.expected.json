@@ -1,0 +1,75 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show bgp summary",
+  "vendor": "cisco_xr",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 19,
+        "line_end": 19
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 20,
+        "line_end": 20
+      },
+      "peer": "192.0.2.6",
+      "remote_as": 64498,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "state": "Idle",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 21,
+        "line_end": 21
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64499,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 22,
+        "line_end": 23
+      },
+      "peer": "2001:db8:0:1::3",
+      "remote_as": 64500,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "state": "Active",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

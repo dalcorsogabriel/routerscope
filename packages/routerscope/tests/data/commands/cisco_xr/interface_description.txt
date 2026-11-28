@@ -1,0 +1,4 @@
+Interface          Status      Protocol    Description
+Gi0/0/0/0          up          up          to PE2
+Gi0/0/0/1          admin-down  admin-down
+Lo0                up          up          router id

@@ -53,10 +53,10 @@ def test_empty_and_garbage(vendor: str) -> None:
 
 
 @pytest.mark.parametrize("vendor", VENDORS)
-def test_readonly_commands_unchanged(vendor: str) -> None:
+def test_readonly_commands_are_declared(vendor: str) -> None:
     plugin = get(vendor)
     assert plugin is not None
-    assert tuple(plugin.readonly_commands()) == ()
+    assert len(tuple(plugin.readonly_commands())) >= 5
 
 
 @pytest.mark.parametrize("vendor", VENDORS)

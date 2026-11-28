@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show system information",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "software": "SR OS",
+      "version": "B-22.10.R3",
+      "platform": "7750 SR-7",
+      "uptime": "12 days, 03:04:05.00 (hr:min:sec)"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "hostname": "PE1",
+      "model": "7750 SR-7"
+    }
+  ]
+}

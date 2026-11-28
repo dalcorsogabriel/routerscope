@@ -1,0 +1,10 @@
+MAC flags (S - static MAC, D - dynamic MAC, L - locally learned, P - Persistent static
+           SE - statistics enabled, NM - non configured MAC, R - remote PE MAC, O - ovsdb MAC)
+
+Ethernet switching table : 2 entries, 2 learned
+Routing instance : default-switch
+    Vlan                MAC                 MAC      Logical          SVLBNH/      Active
+    name                address             flags    interface        VENH Index   source
+    VLAN10              00:00:5e:00:53:01   D        ge-0/0/1.0
+    VLAN20              00:00:5e:00:53:02   S        ge-0/0/2.0
+    v30                 00:00:5e:00:53:03   DL       ge-0/0/3.0

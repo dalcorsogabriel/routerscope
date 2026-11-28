@@ -1,0 +1,52 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "display bgp peer",
+  "vendor": "huawei_vrp",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "peer": "192.0.2.6",
+      "remote_as": 64498,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Idle",
+      "import_policies": [],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 9
+      },
+      "peer": "2001:db8:1234:5678::2",
+      "remote_as": 64499,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Active",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

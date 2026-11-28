@@ -1,0 +1,5 @@
+Hostname: R1
+Model: mx480
+Junos: 21.4R3-S2.3
+JUNOS OS Kernel 64-bit  [20220922.0000000_builder_stable_11]
+JUNOS Runtime Software Suite [21.4R3-S2.3]

@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show bgp ipv6 summary",
+  "vendor": "ipinfusion_ocnos",
+  "objects": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "peer": "2001:db8::2",
+      "remote_as": 64497,
+      "local_as": 64496,
+      "address_families": [],
+      "state": "Established",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ]
+}

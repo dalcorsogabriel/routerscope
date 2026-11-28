@@ -1,0 +1,1 @@
+show bgp all summary

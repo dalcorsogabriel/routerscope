@@ -1,0 +1,8 @@
+Flags: D - DYNAMIC; R - RUNNING; S - SLAVE; X - DISABLED
+Columns: NAME, TYPE, ACTUAL-MTU, L2MTU, MAX-L2MTU, MAC-ADDRESS
+#     NAME     TYPE    ACTUAL-MTU  L2MTU  MAX-L2MTU  MAC-ADDRESS
+;;; uplink to PE2
+0  R  ether1   ether         1500   1598       4074  00:00:5E:00:53:01
+1  X  ether2   ether         1500   1598       4074  00:00:5E:00:53:02
+2  RS ether3   ether         1500   1598       4074  00:00:5E:00:53:03
+3  R  bridge1  bridge        1500   1594             00:00:5E:00:53:01

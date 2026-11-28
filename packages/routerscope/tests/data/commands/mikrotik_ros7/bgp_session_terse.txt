@@ -1,0 +1,2 @@
+ 0 E name=peer-1-1 remote.address=192.0.2.2 .as=64497 local.address=192.0.2.1 .as=64496 uptime=1d2h3m prefix-count=5
+ 1   name=peer-2-1 remote.address=2001:db8::2 .as=64498 local.address=2001:db8::1 .as=64496

@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router arp",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "ip": "192.0.2.2",
+      "mac": "00:00:5e:00:53:02",
+      "interface": "to-PE2",
+      "interface_normalized": "to-PE2",
+      "vendor": "nokia_sros"
+    },
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "ip": "192.0.2.6",
+      "mac": "00:00:5e:00:53:03",
+      "interface": "to-CE1",
+      "interface_normalized": "to-CE1",
+      "vendor": "nokia_sros"
+    }
+  ]
+}

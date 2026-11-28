@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show version",
+  "vendor": "cisco_xr",
+  "objects": [
+    {
+      "kind": "version",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 1,
+        "line_end": 1
+      },
+      "software": "IOS-XR",
+      "version": "7.5.2",
+      "platform": "ASR9K Series",
+      "uptime": "2 weeks, 1 day, 4 hours, 3 minutes"
+    },
+    {
+      "kind": "device",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 13,
+        "line_end": 17
+      },
+      "hostname": "PE1",
+      "model": "ASR9K Series"
+    }
+  ]
+}

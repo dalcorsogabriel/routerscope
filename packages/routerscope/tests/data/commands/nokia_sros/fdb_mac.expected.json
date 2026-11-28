@@ -1,0 +1,48 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show service fdb-mac",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "mac": "00:00:5e:00:53:01",
+      "interface": "sap:1/1/3:100",
+      "interface_normalized": "sap:1/1/3:100",
+      "vendor": "nokia_sros",
+      "entry_type": "dynamic",
+      "domain": "100"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "mac": "00:00:5e:00:53:02",
+      "interface": "sdp:10:100",
+      "interface_normalized": "sdp:10:100",
+      "vendor": "nokia_sros",
+      "entry_type": "static",
+      "domain": "100"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "mac": "00:00:5e:00:53:03",
+      "interface": "vxlan-1:192.0.2.9:100",
+      "interface_normalized": "vxlan-1:192.0.2.9:100",
+      "vendor": "nokia_sros",
+      "domain": "100"
+    }
+  ]
+}

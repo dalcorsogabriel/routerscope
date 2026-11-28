@@ -1,0 +1,5 @@
+BGP router identifier 192.0.2.1, local AS number 64496
+BGP table version is 2
+
+Neighbor        V    AS   MsgRcv   MsgSen  TblVer  InQ OutQ Up/Down  State/PfxRcd
+2001:db8::2     4 64497       55       55       2    0    0 00:20:00        2

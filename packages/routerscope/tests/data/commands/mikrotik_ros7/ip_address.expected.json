@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/ip address print",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "interface": "ether1",
+      "address": "192.0.2.1/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "interface": "bridge1",
+      "address": "203.0.113.1/24",
+      "secondary": false
+    }
+  ]
+}

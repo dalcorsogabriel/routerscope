@@ -1,0 +1,18 @@
+Cisco IOS XR Software, Version 7.5.2
+Copyright (c) 2013-2022 by Cisco Systems, Inc.
+
+Build Information:
+ Built By     : builder
+ Built On     : Mon Jan 01 00:00:00 UTC 2022
+ Build Host   : build-host
+ Workspace    : workspace
+ Version      : 7.5.2
+ Location     : /opt/cisco/XR/packages/
+ Label        : 7.5.2
+
+cisco ASR9K Series (Intel 686 F6M14S4) processor with 12582912K bytes of memory.
+Intel 686 F6M14S4 processor at 2137MHz, Revision 2.174
+ASR 9006 4 Line Card Slot Chassis
+
+PE1 uptime is 2 weeks, 1 day, 4 hours, 3 minutes
+System image file is "disk0:asr9k-os-mbi-7.5.2/0x100000/mbiasr9k-rsp3.vm"

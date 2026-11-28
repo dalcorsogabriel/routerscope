@@ -1,0 +1,21 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "show router \"VPRN1\" arp",
+  "vendor": "nokia_sros",
+  "objects": [
+    {
+      "kind": "arp_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "ip": "198.51.100.2",
+      "mac": "00:00:5e:00:53:21",
+      "interface": "to-cust",
+      "interface_normalized": "to-cust",
+      "vendor": "nokia_sros",
+      "vrf": "VPRN1"
+    }
+  ]
+}

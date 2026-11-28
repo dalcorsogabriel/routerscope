@@ -1,0 +1,51 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "command": "/interface bridge host print",
+  "vendor": "mikrotik_ros7",
+  "objects": [
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 4
+      },
+      "mac": "00:00:5e:00:53:01",
+      "interface": "bridge",
+      "interface_normalized": "bridge",
+      "vendor": "mikrotik_ros7",
+      "entry_type": "static",
+      "domain": "bridge1"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "mac": "00:00:5e:00:53:02",
+      "vlan": 10,
+      "interface": "ether2",
+      "interface_normalized": "ether2",
+      "vendor": "mikrotik_ros7",
+      "entry_type": "dynamic",
+      "domain": "bridge1"
+    },
+    {
+      "kind": "mac_entry",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "mac": "00:00:5e:00:53:03",
+      "vlan": 20,
+      "interface": "ether3",
+      "interface_normalized": "ether3",
+      "vendor": "mikrotik_ros7",
+      "entry_type": "static",
+      "domain": "bridge1"
+    }
+  ]
+}

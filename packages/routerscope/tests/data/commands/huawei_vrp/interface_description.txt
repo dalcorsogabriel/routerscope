@@ -1,0 +1,6 @@
+PHY: Physical
+*down: administratively down
+Interface                     PHY     Protocol Description
+GE0/0/0                       up      up       to PE2
+GE0/0/1                       *down   down
+Eth-Trunk1                    up      up       core bundle
