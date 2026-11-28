@@ -164,6 +164,7 @@ def make_static_route(
     prefix: IPNet | None,
     target: RouteTarget,
     vrf: str | None,
+    metric: int | None = None,
 ) -> None:
     """Add a :class:`StaticRoute` built from parsed pieces (skipped if invalid)."""
     if prefix is None:
@@ -177,6 +178,7 @@ def make_static_route(
             blackhole=target.blackhole,
             vrf=vrf,
             distance=target.distance,
+            metric=metric,
             tag=target.tag,
             description=target.description,
         )
