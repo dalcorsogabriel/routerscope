@@ -137,7 +137,7 @@
         "line_end": 25
       },
       "peer": "198.51.100.38",
-      "remote_as": 64580,
+      "remote_as": 64510,
       "local_as": 64496,
       "address_families": [],
       "description": "transit provider",

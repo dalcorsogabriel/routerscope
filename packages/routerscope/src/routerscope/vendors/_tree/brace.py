@@ -45,6 +45,8 @@ def parse_brace(text: str, dialect: BraceDialect = "junos") -> ConfigNode:
     i = 0
 
     def statement() -> tuple[str, int, int, bool, bool]:
+        if not cur:
+            return "", line, line, False, False
         toks = list(cur)
         inactive = protected = False
         while toks and toks[0].raw in _PREFIXES:

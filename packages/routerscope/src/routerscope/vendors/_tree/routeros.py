@@ -50,6 +50,9 @@ def parse_routeros(text: str) -> ConfigNode:
         if logical.endswith("\\"):
             logical = logical[:-1].rstrip()
         end = own[-1]
+        if logical == "/":
+            section = None
+            continue
         if logical.startswith("/"):
             tokens = split_tokens(logical)
             split = next((k for k, tok in enumerate(tokens) if k > 0 and tok in VERBS), None)

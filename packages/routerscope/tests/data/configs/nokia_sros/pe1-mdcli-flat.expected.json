@@ -76,7 +76,7 @@
         "line_end": 11
       },
       "peer": "198.51.100.34",
-      "remote_as": 64570,
+      "remote_as": 64508,
       "local_as": 64496,
       "address_families": [],
       "import_policies": [],

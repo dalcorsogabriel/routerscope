@@ -363,7 +363,7 @@ def _mdcli(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
             continue
         if body[0] == "autonomous-system" and len(body) >= 2:
             local_as[vrf] = to_asn(body[1])
-        elif body[0] == "interface" and len(body) >= 3:
+        elif body[0] == "interface" and len(body) >= 2:
             _md_iface(ifaces, node, fw, body, vrf)
         elif body[:2] == ("bgp", "neighbor") or body[:2] == ("bgp", "group"):
             _md_bgp(book, peer_nodes, node, fw, body, vrf)
@@ -432,6 +432,8 @@ def _md_iface(
     key = (vrf, body[1])
     acc = ifaces.setdefault(key, _MdIface(_anchor(node, len(fw) - len(body) + 2), vrf))
     tail = body[2:]
+    if not tail:
+        return
     if tail[0] == "description" and len(tail) >= 2:
         acc.description = tail[1]
     elif tail[0] == "admin-state" and len(tail) >= 2:

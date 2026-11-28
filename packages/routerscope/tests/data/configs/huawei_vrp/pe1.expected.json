@@ -168,7 +168,7 @@
         "line_end": 40
       },
       "peer": "198.51.100.18",
-      "remote_as": 64530,
+      "remote_as": 64504,
       "address_families": [
         "ipv4 unicast"
       ],

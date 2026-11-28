@@ -162,7 +162,7 @@
       },
       "peer": "198.51.100.14",
       "remote_as": 64510,
-      "local_as": 64520,
+      "local_as": 64503,
       "address_families": [
         "ipv4 unicast"
       ],

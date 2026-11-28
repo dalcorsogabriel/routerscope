@@ -328,6 +328,8 @@ class Builder:
 
     def interface(self, node: ConfigNode, name: str, **fields: Any) -> Interface | None:
         """Create an :class:`Interface` from ``node`` and add it; returns it (or ``None``)."""
+        if not fields.get("mtu"):
+            fields["mtu"] = None
         iface = safe(lambda: Interface(ref=self.ref(node), name=name, vendor=self.vendor, **fields))
         if iface is not None:
             self.interfaces.append(iface)

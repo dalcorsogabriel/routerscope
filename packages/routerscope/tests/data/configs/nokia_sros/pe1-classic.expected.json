@@ -174,8 +174,8 @@
         "line_end": 65
       },
       "peer": "198.51.100.30",
-      "remote_as": 64550,
-      "local_as": 64560,
+      "remote_as": 64506,
+      "local_as": 64507,
       "address_families": [],
       "import_policies": [
         "TRANSIT-IN"
