@@ -567,3 +567,24 @@ def test_custom_specs_argument_overrides_registry() -> None:
 def test_generic_key_helper() -> None:
     assert sem.generic_key(Widget(ref=ref(), name="n")) == ("n",)
     assert sem.generic_key(Blob(ref=ref(), payload="p", age=3))[0].startswith("{")
+
+
+def test_item_changes_invert_and_serialize() -> None:
+    old = pl(ple(5, "192.0.2.0/24"), ple(10, "198.51.100.0/24"))
+    new = pl(ple(5, "192.0.2.0/24", le=28), ple(15, "203.0.113.0/24"))
+    forward = diff_objects([old], [new])
+    assert forward.inverted() == diff_objects([new], [old])
+    data = json.loads(json.dumps(forward.to_dict()))
+    items = data["changes"][0]["items"]
+    assert {i["op"] for i in items} == {"changed", "removed", "added"}
+    assert data["changes"][0]["old_ref"]["snapshot_id"] == SNAP_A
+
+
+def test_plain_values_fall_back_to_str() -> None:
+    class Odd:
+        def __str__(self) -> str:
+            return "odd"
+
+    assert sem._plain(Odd()) == "odd"
+    assert sem._plain({1, 2}) in ([1, 2],)
+    assert sem._iface(object()).startswith("<object")

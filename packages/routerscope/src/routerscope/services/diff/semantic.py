@@ -272,7 +272,7 @@ def _s(value: object) -> str:
 def _iface(name: object) -> str:
     try:
         return normalize_interface(str(name))
-    except Exception:  # defensive: a key must never break a diff
+    except Exception:  # defensive: a key must never break a diff  # pragma: no cover
         return str(name)
 
 
@@ -515,6 +515,7 @@ def _diff_items(
             if fields:
                 out.append(ItemChange("changed", key, fields, value, b[key]))
     out.extend(ItemChange("added", key, new=value) for key, value in b.items() if key not in a)
+    out.sort(key=lambda c: c.key)
     if spec.ordered:
         keys_a = [k for k in a if k in b and not k.startswith("seq ")]
         keys_b = [k for k in b if k in a and not k.startswith("seq ")]
