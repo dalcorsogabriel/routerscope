@@ -26,7 +26,7 @@ _XR_CLOSERS: dict[str, re.Pattern[str]] = {
 
 @dataclass(frozen=True)
 class _Rules:
-    comment_prefix: str
+    comment_prefix: str | tuple[str, ...]
     leaf_prefixes: tuple[str, ...] = ()
     exit_closes: bool = False
     banners: bool = True
@@ -36,7 +36,9 @@ class _Rules:
 _RULES: dict[str, _Rules] = {
     "ios": _Rules("!"),
     "xr": _Rules("!", xr_closers=True),
-    "vrp": _Rules("#", banners=False),
+    # VRP separates blocks with "#"; "!" starts header and comment lines
+    # (``!Software Version ...``, ``!Last configuration was updated ...``).
+    "vrp": _Rules(("#", "!"), banners=False),
     "sros": _Rules("#", leaf_prefixes=("echo ",), exit_closes=True, banners=False),
 }
 
