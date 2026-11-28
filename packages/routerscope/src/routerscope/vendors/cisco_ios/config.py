@@ -48,7 +48,7 @@ def parse_ios_like(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
             _static(b, node, w)
         elif head in ("ip", "ipv6") and len(w) >= 4 and w[1] == "prefix-list":
             _prefix_list(prefixes, node, w)
-        elif head == "vlan" and len(w) == 2:
+        elif head == "vlan" and len(w) == 2 and w[1] != "database":
             _vlan(b, node, w[1])
         elif node.text == "vlan database":
             for child in node.children:

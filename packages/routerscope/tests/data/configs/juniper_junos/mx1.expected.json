@@ -1,0 +1,376 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "juniper_junos",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 5,
+      "line_end": 5
+    },
+    "hostname": "MX1"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 11,
+        "line_end": 22
+      },
+      "name": "ge-0/0/0",
+      "name_normalized": "ge-0/0/0",
+      "vendor": "juniper_junos",
+      "description": "uplink { to P1; }",
+      "enabled": true,
+      "mtu": 9192
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 21
+      },
+      "name": "ge-0/0/0.0",
+      "name_normalized": "ge-0/0/0.0",
+      "vendor": "juniper_junos",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 23,
+        "line_end": 34
+      },
+      "name": "ge-0/0/1",
+      "name_normalized": "ge-0/0/1",
+      "vendor": "juniper_junos",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 25,
+        "line_end": 33
+      },
+      "name": "ge-0/0/1.500",
+      "name_normalized": "ge-0/0/1.500",
+      "vendor": "juniper_junos",
+      "description": "CUST-E",
+      "enabled": true,
+      "vrf": "CUST-E"
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 38,
+        "line_end": 45
+      },
+      "name": "ge-0/0/3",
+      "name_normalized": "ge-0/0/3",
+      "vendor": "juniper_junos",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 40,
+        "line_end": 44
+      },
+      "name": "ge-0/0/3.0",
+      "name_normalized": "ge-0/0/3.0",
+      "vendor": "juniper_junos",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 46,
+        "line_end": 52
+      },
+      "name": "lo0",
+      "name_normalized": "lo0",
+      "vendor": "juniper_junos",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 47,
+        "line_end": 51
+      },
+      "name": "lo0.0",
+      "name_normalized": "lo0.0",
+      "vendor": "juniper_junos",
+      "enabled": true
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 16
+      },
+      "interface": "ge-0/0/0.0",
+      "address": "198.51.100.25/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 19,
+        "line_end": 19
+      },
+      "interface": "ge-0/0/0.0",
+      "address": "2001:db8:5::1/64",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 29,
+        "line_end": 31
+      },
+      "interface": "ge-0/0/1.500",
+      "address": "203.0.113.25/30",
+      "vrf": "CUST-E",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 42,
+        "line_end": 42
+      },
+      "interface": "ge-0/0/3.0",
+      "address": "192.0.2.99/31",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 49,
+        "line_end": 49
+      },
+      "interface": "lo0.0",
+      "address": "192.0.2.40/32",
+      "secondary": false
+    }
+  ],
+  "vrfs": [
+    {
+      "kind": "vrf",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 104,
+        "line_end": 125
+      },
+      "name": "CUST-E",
+      "rd": "64496:500",
+      "import_targets": [
+        "target:64496:500"
+      ],
+      "export_targets": [
+        "target:64496:500"
+      ],
+      "interfaces": [
+        "ge-0/0/1.500"
+      ]
+    }
+  ],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 78,
+        "line_end": 78
+      },
+      "peer": "192.0.2.1",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "import_policies": [
+        "RR-IN",
+        "LEAK-IN"
+      ],
+      "export_policies": [
+        "NHS"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 79,
+        "line_end": 81
+      },
+      "peer": "192.0.2.2",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [
+        "ipv4 unicast"
+      ],
+      "description": "rr2",
+      "import_policies": [
+        "RR-IN",
+        "LEAK-IN"
+      ],
+      "export_policies": [
+        "NHS"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 86,
+        "line_end": 90
+      },
+      "peer": "198.51.100.26",
+      "remote_as": 64540,
+      "local_as": 64496,
+      "address_families": [],
+      "import_policies": [
+        "TRANSIT-IN"
+      ],
+      "export_policies": [
+        "TRANSIT-OUT"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 121,
+        "line_end": 121
+      },
+      "peer": "203.0.113.26",
+      "remote_as": 65545,
+      "local_as": 64496,
+      "vrf": "CUST-E",
+      "address_families": [],
+      "import_policies": [],
+      "export_policies": []
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 95,
+        "line_end": 98
+      },
+      "name": "CUST-E-IN",
+      "afi": "ipv4",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "203.0.113.0/24"
+        },
+        {
+          "action": "permit",
+          "prefix": "198.51.100.128/25"
+        }
+      ]
+    },
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 99,
+        "line_end": 101
+      },
+      "name": "V6-IN",
+      "afi": "ipv6",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "2001:db8::/32"
+        }
+      ]
+    }
+  ],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 56,
+        "line_end": 56
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.26",
+      "blackhole": false
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 57,
+        "line_end": 60
+      },
+      "prefix": "192.0.2.0/25",
+      "blackhole": true,
+      "distance": 250
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 61,
+        "line_end": 64
+      },
+      "prefix": "198.51.100.64/26",
+      "next_hop": "198.51.100.26",
+      "blackhole": false,
+      "tag": 99
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 114,
+        "line_end": 114
+      },
+      "prefix": "192.0.2.128/26",
+      "next_hop": "203.0.113.26",
+      "blackhole": false,
+      "vrf": "CUST-E"
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 128,
+        "line_end": 130
+      },
+      "vlan_id": 500,
+      "name": "V500",
+      "interfaces": []
+    }
+  ],
+  "transceivers": []
+}

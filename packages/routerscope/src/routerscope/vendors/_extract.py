@@ -220,7 +220,10 @@ def rest(text: str, skip_words: int) -> str | None:
     parts = text.split(None, skip_words)
     if len(parts) <= skip_words:
         return None
-    return parts[skip_words].strip() or None
+    value = parts[skip_words].strip()
+    if len(value) >= 2 and value[0] == value[-1] == '"' and value.count('"') == 2:
+        value = value[1:-1]
+    return value or None
 
 
 @dataclass
@@ -234,6 +237,7 @@ class PeerAcc:
     exports: list[str] = field(default_factory=list)
     families: list[str] = field(default_factory=list)
     group: str | None = None
+    internal: bool = False
     ref: tuple[int, int] | None = None
 
     def touch(self, node: ConfigNode) -> None:

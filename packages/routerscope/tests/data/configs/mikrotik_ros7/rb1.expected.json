@@ -1,0 +1,287 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "mikrotik_ros7",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 36,
+      "line_end": 36
+    },
+    "hostname": "RB1"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 6,
+        "line_end": 6
+      },
+      "name": "bridge1",
+      "name_normalized": "bridge1",
+      "vendor": "mikrotik_ros7",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 8,
+        "line_end": 8
+      },
+      "name": "ether1",
+      "name_normalized": "ether1",
+      "vendor": "mikrotik_ros7",
+      "description": "uplink \"main\"",
+      "enabled": true,
+      "mtu": 1500
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 9,
+        "line_end": 9
+      },
+      "name": "ether2-spare",
+      "name_normalized": "ether2-spare",
+      "vendor": "mikrotik_ros7",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "name": "ether3-cust",
+      "name_normalized": "ether3-cust",
+      "vendor": "mikrotik_ros7",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 12
+      },
+      "name": "vlan700",
+      "name_normalized": "vlan700",
+      "vendor": "mikrotik_ros7",
+      "description": "customer H",
+      "enabled": true,
+      "vrf": "CUST-H"
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 18,
+        "line_end": 18
+      },
+      "interface": "ether1",
+      "address": "198.51.100.37/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 19,
+        "line_end": 19
+      },
+      "interface": "vlan700",
+      "address": "203.0.113.37/30",
+      "vrf": "CUST-H",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 21,
+        "line_end": 21
+      },
+      "interface": "ether1",
+      "address": "2001:db8:8::1/64",
+      "secondary": false
+    }
+  ],
+  "vrfs": [
+    {
+      "kind": "vrf",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 16,
+        "line_end": 16
+      },
+      "name": "CUST-H",
+      "import_targets": [],
+      "export_targets": [],
+      "interfaces": [
+        "vlan700"
+      ]
+    }
+  ],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 23,
+        "line_end": 25
+      },
+      "peer": "198.51.100.38",
+      "remote_as": 64580,
+      "local_as": 64496,
+      "address_families": [],
+      "description": "transit provider",
+      "import_policies": [
+        "TRANSIT-IN"
+      ],
+      "export_policies": [
+        "TRANSIT-OUT"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 26,
+        "line_end": 26
+      },
+      "peer": "203.0.113.38",
+      "remote_as": 65551,
+      "local_as": 64496,
+      "vrf": "CUST-H",
+      "address_families": [],
+      "description": "cust",
+      "import_policies": [],
+      "export_policies": []
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 29,
+        "line_end": 29
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.38",
+      "blackhole": false
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 30,
+        "line_end": 30
+      },
+      "prefix": "192.0.2.240/28",
+      "blackhole": true,
+      "description": "blackhole"
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 31,
+        "line_end": 31
+      },
+      "prefix": "192.0.2.0/26",
+      "interface": "ether1",
+      "blackhole": false,
+      "distance": 5
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 32,
+        "line_end": 32
+      },
+      "prefix": "198.51.100.200/29",
+      "next_hop": "203.0.113.38",
+      "blackhole": false,
+      "vrf": "CUST-H"
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 34,
+        "line_end": 34
+      },
+      "prefix": "2001:db8:ffff::/48",
+      "next_hop": "2001:db8:8::2",
+      "blackhole": false
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 12
+      },
+      "vlan_id": 700,
+      "name": "vlan700",
+      "interfaces": [
+        "vlan700"
+      ]
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 14
+      },
+      "vlan_id": 100,
+      "interfaces": [
+        "ether1",
+        "ether3-cust"
+      ]
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 14
+      },
+      "vlan_id": 200,
+      "interfaces": [
+        "ether1",
+        "ether3-cust"
+      ]
+    },
+    {
+      "kind": "vlan",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 14,
+        "line_end": 14
+      },
+      "vlan_id": 201,
+      "interfaces": [
+        "ether1",
+        "ether3-cust"
+      ]
+    }
+  ],
+  "transceivers": []
+}

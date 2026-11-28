@@ -143,6 +143,9 @@ def parse_junos(text: str, snapshot: Snapshot, vendor: str) -> ParsedConfig:
         elif rel[0] == "routing-options":
             _route_stmt(routes, node, fw, rel, vrf)
 
+    for group_acc in book.groups.values():
+        if group_acc.internal and group_acc.remote_as is None:
+            group_acc.remote_as = local_as
     for (peer_vrf, name), anchor in peer_nodes.items():
         peer_acc = book.peers[(peer_vrf, name)]
         peer_acc.ref = (anchor.line_start, anchor.line_end)
@@ -239,7 +242,7 @@ def _bgp_stmt(
         group = body[1]
         body = body[2:]
     peer: str | None = None
-    if body[:1] == ("neighbor",) and len(body) >= 3 and parse_ip(body[1]) is not None:
+    if body[:1] == ("neighbor",) and len(body) >= 2 and parse_ip(body[1]) is not None:
         peer = body[1]
         body = body[2:]
         peer_nodes.setdefault((vrf, peer), _anchor(node, len(fw) - len(body)))
@@ -265,7 +268,9 @@ def _bgp_stmt(
         acc.imports.extend(v for v in _values(body[1:]) if v not in acc.imports)
     elif key == "export":
         acc.exports.extend(v for v in _values(body[1:]) if v not in acc.exports)
-    elif key == "family" and len(body) >= 2:
+    elif key == "type" and len(body) >= 2 and body[1] == "internal":
+        acc.internal = True
+    elif key == "family" and len(body) >= 3:
         acc.add_family(" ".join([_AFI.get(body[1], body[1]), *body[2:3]]))
 
 

@@ -1,0 +1,126 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "nokia_sros",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 2,
+      "line_end": 2
+    },
+    "hostname": "SR2"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 4,
+        "line_end": 7
+      },
+      "name": "to-PE1",
+      "name_normalized": "to-PE1",
+      "vendor": "nokia_sros",
+      "description": "core link",
+      "enabled": true
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 5,
+        "line_end": 5
+      },
+      "interface": "to-PE1",
+      "address": "198.51.100.33/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 7,
+        "line_end": 7
+      },
+      "interface": "to-PE1",
+      "address": "2001:db8:7::1/64",
+      "secondary": false
+    }
+  ],
+  "vrfs": [],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 10
+      },
+      "peer": "192.0.2.1",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [],
+      "import_policies": [
+        "RR-IN",
+        "LEAK-IN"
+      ],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 11,
+        "line_end": 11
+      },
+      "peer": "198.51.100.34",
+      "remote_as": 64570,
+      "local_as": 64496,
+      "address_families": [],
+      "import_policies": [],
+      "export_policies": []
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 13,
+        "line_end": 15
+      },
+      "name": "CUST-G",
+      "afi": "ipv4",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "198.51.100.0/24",
+          "ge": 25,
+          "le": 28
+        }
+      ]
+    }
+  ],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 12,
+        "line_end": 12
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.34",
+      "blackhole": false,
+      "distance": 20
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [],
+  "transceivers": []
+}

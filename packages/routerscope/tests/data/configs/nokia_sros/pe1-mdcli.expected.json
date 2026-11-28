@@ -1,0 +1,242 @@
+{
+  "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+  "vendor": "nokia_sros",
+  "device": {
+    "kind": "device",
+    "ref": {
+      "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+      "line_start": 6,
+      "line_end": 6
+    },
+    "hostname": "SR2"
+  },
+  "interfaces": [
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 10,
+        "line_end": 17
+      },
+      "name": "system",
+      "name_normalized": "system",
+      "vendor": "nokia_sros",
+      "enabled": true
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 18,
+        "line_end": 34
+      },
+      "name": "to-PE1",
+      "name_normalized": "to-PE1",
+      "vendor": "nokia_sros",
+      "description": "core { link }",
+      "enabled": true,
+      "mtu": 9000
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 35,
+        "line_end": 37
+      },
+      "name": "spare",
+      "name_normalized": "spare",
+      "vendor": "nokia_sros",
+      "enabled": false
+    },
+    {
+      "kind": "interface",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 77,
+        "line_end": 84
+      },
+      "name": "to-cust",
+      "name_normalized": "to-cust",
+      "vendor": "nokia_sros",
+      "enabled": true,
+      "vrf": "CUST-G"
+    }
+  ],
+  "ip_addresses": [
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 13,
+        "line_end": 13
+      },
+      "interface": "system",
+      "address": "192.0.2.60/32",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 25,
+        "line_end": 25
+      },
+      "interface": "to-PE1",
+      "address": "198.51.100.33/30",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 30,
+        "line_end": 32
+      },
+      "interface": "to-PE1",
+      "address": "2001:db8:7::1/64",
+      "secondary": false
+    },
+    {
+      "kind": "ip_address",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 80,
+        "line_end": 80
+      },
+      "interface": "to-cust",
+      "address": "203.0.113.33/30",
+      "vrf": "CUST-G",
+      "secondary": false
+    }
+  ],
+  "vrfs": [
+    {
+      "kind": "vrf",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 75,
+        "line_end": 90
+      },
+      "name": "CUST-G",
+      "rd": "64496:700",
+      "import_targets": [],
+      "export_targets": [],
+      "interfaces": [
+        "to-cust"
+      ]
+    }
+  ],
+  "bgp_peers": [
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 48,
+        "line_end": 51
+      },
+      "peer": "192.0.2.1",
+      "remote_as": 64496,
+      "local_as": 64496,
+      "address_families": [],
+      "description": "rr1",
+      "import_policies": [
+        "RR-IN",
+        "LEAK-IN"
+      ],
+      "export_policies": [
+        "NHS"
+      ]
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 52,
+        "line_end": 60
+      },
+      "peer": "198.51.100.34",
+      "remote_as": 64570,
+      "local_as": 64571,
+      "address_families": [],
+      "import_policies": [
+        "TRANSIT-IN"
+      ],
+      "export_policies": []
+    },
+    {
+      "kind": "bgp_peer",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 86,
+        "line_end": 88
+      },
+      "peer": "203.0.113.34",
+      "remote_as": 65549,
+      "vrf": "CUST-G",
+      "address_families": [],
+      "import_policies": [],
+      "export_policies": []
+    }
+  ],
+  "policies": [],
+  "prefix_lists": [
+    {
+      "kind": "prefix_list",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 94,
+        "line_end": 101
+      },
+      "name": "CUST-G",
+      "afi": "ipv4",
+      "entries": [
+        {
+          "action": "permit",
+          "prefix": "203.0.113.0/24"
+        },
+        {
+          "action": "permit",
+          "prefix": "198.51.100.0/24",
+          "ge": 25,
+          "le": 28
+        },
+        {
+          "action": "permit",
+          "prefix": "192.0.2.0/24",
+          "ge": 25,
+          "le": 32
+        }
+      ]
+    }
+  ],
+  "acls": [],
+  "static_routes": [
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 64,
+        "line_end": 66
+      },
+      "prefix": "0.0.0.0/0",
+      "next_hop": "198.51.100.34",
+      "blackhole": false,
+      "distance": 20
+    },
+    {
+      "kind": "static_route",
+      "ref": {
+        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "line_start": 69,
+        "line_end": 70
+      },
+      "prefix": "192.0.2.224/27",
+      "blackhole": true
+    }
+  ],
+  "igps": [],
+  "lags": [],
+  "vlans": [],
+  "transceivers": []
+}

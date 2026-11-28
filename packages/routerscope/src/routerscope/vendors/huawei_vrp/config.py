@@ -233,6 +233,7 @@ def _vlan(b: Builder, node: ConfigNode, ident: str) -> None:
             name = rest(child.text, 1)
     vlan = make(VLAN, ref=b.ref(node), vlan_id=vid, name=name)
     if vlan is not None:
+        b.vlans = [v for v in b.vlans if v.vlan_id != vid]
         b.vlans.append(vlan)
 
 

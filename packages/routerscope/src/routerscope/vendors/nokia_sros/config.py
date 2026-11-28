@@ -79,7 +79,10 @@ def _classic(root: ConfigNode, snapshot: Snapshot, vendor: str) -> ParsedConfig:
 
 
 def _classic_vprn(b: Builder, book: PeerBook, node: ConfigNode, iface_vrf: dict[str, str]) -> None:
-    name = f"vprn{node.words[1]}"
+    words = node.words
+    name = f"vprn{words[1]}"
+    if "name" in words[2:-1]:
+        name = words[words.index("name") + 1]
     rd: str | None = None
     imports: list[str] = []
     exports: list[str] = []
