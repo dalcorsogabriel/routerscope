@@ -26,7 +26,9 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Storage: storage.md
-  - Importers: importers.md
+  - Importers:
+      - importers.md
+      - importers-git.md
   - Roadmap: roadmap.md
   - Guides:
       - guides/add-a-vendor.md
