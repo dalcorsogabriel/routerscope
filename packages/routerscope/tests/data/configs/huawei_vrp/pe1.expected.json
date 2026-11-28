@@ -154,6 +154,7 @@
       },
       "peer": "192.0.2.1",
       "remote_as": 64496,
+      "local_as": 64496,
       "address_families": [
         "ipv4 unicast"
       ],
@@ -169,6 +170,7 @@
       },
       "peer": "198.51.100.18",
       "remote_as": 64504,
+      "local_as": 64496,
       "address_families": [
         "ipv4 unicast"
       ],
@@ -189,6 +191,7 @@
       },
       "peer": "203.0.113.18",
       "remote_as": 65540,
+      "local_as": 64496,
       "vrf": "CUST-D",
       "address_families": [],
       "import_policies": [

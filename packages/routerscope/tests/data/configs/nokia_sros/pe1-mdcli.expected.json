@@ -216,8 +216,8 @@
       "kind": "static_route",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 64,
-        "line_end": 66
+        "line_start": 63,
+        "line_end": 67
       },
       "prefix": "0.0.0.0/0",
       "next_hop": "198.51.100.34",
@@ -228,8 +228,8 @@
       "kind": "static_route",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 69,
-        "line_end": 70
+        "line_start": 68,
+        "line_end": 71
       },
       "prefix": "192.0.2.224/27",
       "blackhole": true

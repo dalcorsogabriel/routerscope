@@ -160,7 +160,6 @@
       "local_as": 64496,
       "vrf": "CUST-H",
       "address_families": [],
-      "description": "cust",
       "import_policies": [],
       "export_policies": []
     }

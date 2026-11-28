@@ -181,6 +181,7 @@
       },
       "peer": "192.0.2.2",
       "remote_as": 64496,
+      "local_as": 64496,
       "address_families": [
         "ipv4"
       ],
@@ -219,6 +220,7 @@
       },
       "peer": "203.0.113.2",
       "remote_as": 64502,
+      "local_as": 64496,
       "vrf": "CUST-A",
       "address_families": [
         "ipv4"
