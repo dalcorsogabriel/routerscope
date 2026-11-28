@@ -16,17 +16,6 @@
       "enabled": true
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 2,
-        "line_end": 2
-      },
-      "interface": "GigabitEthernet0/0",
-      "address": "192.0.2.1/32",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -51,17 +40,6 @@
       "enabled": true
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 4,
-        "line_end": 4
-      },
-      "interface": "GigabitEthernet0/2",
-      "address": "198.51.100.1/32",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -74,17 +52,6 @@
       "enabled": true
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 5,
-        "line_end": 5
-      },
-      "interface": "Loopback0",
-      "address": "192.0.2.100/32",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -95,17 +62,6 @@
       "name_normalized": "Port-channel1.100010",
       "vendor": "cisco_ios",
       "enabled": true
-    },
-    {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 6,
-        "line_end": 6
-      },
-      "interface": "Port-channel1.100010",
-      "address": "203.0.113.1/32",
-      "secondary": false
     }
   ]
 }

@@ -130,17 +130,6 @@
       "name_normalized": "lo0.0",
       "vendor": "juniper_junos",
       "enabled": true
-    },
-    {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 11,
-        "line_end": 11
-      },
-      "interface": "lo0.0",
-      "address": "192.0.2.100/32",
-      "secondary": false
     }
   ]
 }

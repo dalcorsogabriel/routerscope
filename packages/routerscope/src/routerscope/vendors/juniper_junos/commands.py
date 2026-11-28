@@ -109,7 +109,7 @@ def interfaces_terse(ctx: Ctx) -> Objects | None:
                 proto = tok[0]
                 tok = tok[1:]
             if proto in ("inet", "inet6") and tok:
-                addr = parse_iface_addr(tok[0])
+                addr = parse_iface_addr(tok[0]) if "/" in tok[0] else None
                 if addr is not None and not addr.is_link_local:
                     out.append(
                         ctx.make(

@@ -179,3 +179,18 @@ def test_fuzz_mutated_real_outputs_never_raise(vendor: str, data: st.DataObject)
     kept = [ln for ln in lines if data.draw(st.booleans())]
     cut = [ln[: data.draw(st.integers(0, 90))] for ln in kept]
     _check(vendor, "\n".join(cut))
+
+
+@pytest.mark.parametrize(
+    ("vendor", "command", "name"),
+    [
+        ("cisco_ios", "show ip interface brief", "interface_brief"),
+        ("cisco_xr", "show ipv4 interface brief", "interface_brief"),
+        ("ipinfusion_ocnos", "show ip interface brief", "interface_brief"),
+    ],
+)
+def test_mask_less_addresses_are_not_guessed(vendor: str, command: str, name: str) -> None:
+    result = run(vendor, command, name)
+    assert result is not None
+    kinds = {o.kind for o in result.objects}
+    assert kinds == {"interface"}

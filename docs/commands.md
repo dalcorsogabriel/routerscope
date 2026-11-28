@@ -39,7 +39,7 @@ experimental and report any output that does not parse.
   `OpenConfirm`). A prefix count in the state column means `Established`. Counters are not stored.
 - `Interface.enabled` is the **admin** state. The model has no operational (line/protocol) state,
   so up/down of enabled interfaces is not kept; this is a known gap.
-- Brief outputs without a prefix length (IOS, XR and OcNOS `interface brief`) give `/32` addresses.
+- Addresses printed without a prefix length (IOS, XR and OcNOS `interface brief`, Junos loopback rows) are not turned into `IPAddress` objects, because a guessed mask would be wrong data; the `Interface` is kept.
 - `address_families` is filled only when the output names the family (IOS `For address family`,
   XR `Address Family`). IOS `vpnv4 all` outputs do not say which VRF a peer is in, so `vrf` is empty.
 - ARP rows without a MAC (incomplete) are skipped. `entry_type` of MAC rows is `None` when the

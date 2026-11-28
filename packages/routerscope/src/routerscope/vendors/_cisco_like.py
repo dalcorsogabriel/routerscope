@@ -125,7 +125,7 @@ def interface_brief(ctx: Ctx) -> Objects | None:
                 Interface, row.start, row.end, name=name, enabled=not _admin_down(status), vrf=vrf
             )
         )
-        addr = parse_iface_addr(tok[1]) if first_ip(tok[1]) is not None else None
+        addr = parse_iface_addr(tok[1]) if "/" in tok[1] else None  # no mask shown: no address
         if addr is not None:
             out.append(
                 ctx.make(IPAddress, row.start, row.end, interface=name, address=addr, vrf=vrf)

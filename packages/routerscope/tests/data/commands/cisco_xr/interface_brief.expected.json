@@ -16,17 +16,6 @@
       "enabled": true
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 2,
-        "line_end": 2
-      },
-      "interface": "GigabitEthernet0/0/0/0",
-      "address": "192.0.2.1/32",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -52,18 +41,6 @@
       "vrf": "CUST1"
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 4,
-        "line_end": 4
-      },
-      "interface": "GigabitEthernet0/0/0/2",
-      "address": "198.51.100.1/32",
-      "vrf": "CUST1",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -74,17 +51,6 @@
       "name_normalized": "Loopback0",
       "vendor": "cisco_xr",
       "enabled": true
-    },
-    {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 5,
-        "line_end": 5
-      },
-      "interface": "Loopback0",
-      "address": "192.0.2.100/32",
-      "secondary": false
     }
   ]
 }

@@ -16,17 +16,6 @@
       "enabled": true
     },
     {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 2,
-        "line_end": 2
-      },
-      "interface": "ce1",
-      "address": "192.0.2.1/32",
-      "secondary": false
-    },
-    {
       "kind": "interface",
       "ref": {
         "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -49,17 +38,6 @@
       "name_normalized": "lo",
       "vendor": "ipinfusion_ocnos",
       "enabled": true
-    },
-    {
-      "kind": "ip_address",
-      "ref": {
-        "snapshot_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "line_start": 4,
-        "line_end": 4
-      },
-      "interface": "lo",
-      "address": "192.0.2.100/32",
-      "secondary": false
     }
   ]
 }
